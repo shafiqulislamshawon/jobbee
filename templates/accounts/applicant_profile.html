@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Applicant Profile - {{ applicant.first_name }} {{ applicant.last_name }} - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <!-- Back Button -->
+    <div class="mb-6">
+        <button onclick="window.close()" class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-700">
+            <svg class="mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Close Profile
+        </button>
+    </div>
+
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg border border-gray-200">
+        <!-- Header Profile Header -->
+        <div class="px-4 py-5 sm:px-6 flex justify-between items-start">
+            <div>
+                <h3 class="text-2xl leading-6 font-bold text-gray-900">
+                    {{ applicant.first_name }} {{ applicant.last_name }}
+                </h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                    {{ applicant.email }}
+                </p>
+            </div>
+            {% if seeker_profile and seeker_profile.resume %}
+            <div>
+                <a href="{{ applicant.seeker_profile.resume.url }}" target="_blank" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-accent hover:bg-blue-600">
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download Resume
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
+            <dl class="sm:divide-y sm:divide-gray-200">
+                {% if seeker_profile and seeker_profile.portfolio_url %}
+                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Portfolio</dt>
+                    <dd class="mt-1 text-sm text-blue-600 sm:mt-0 sm:col-span-2">
+                        <a href="{{ applicant.seeker_profile.portfolio_url }}" target="_blank" class="hover:underline">{{ applicant.seeker_profile.portfolio_url }}</a>
+                    </dd>
+                </div>
+                {% endif %}
+
+                {% if seeker_profile and seeker_profile.skills %}
+                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 bg-gray-50">
+                    <dt class="text-sm font-medium text-gray-500">Skills</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        <div class="text-sm text-gray-700">
+                            {{ applicant.seeker_profile.skills }}
+                        </div>
+                    </dd>
+                </div>
+                {% endif %}
+
+                <!-- Experience -->
+                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Experience</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        {% if seeker_profile and seeker_profile.experience.exists %}
+                            <ul class="space-y-4">
+                            {% for exp in applicant.seeker_profile.experience.all %}
+                                <li>
+                                    <h4 class="font-bold text-gray-900">{{ exp.job_title }}</h4>
+                                    <p class="text-gray-700">{{ exp.company }}</p>
+                                    <p class="text-gray-500 text-xs mt-1">{{ exp.start_date|date:"M Y" }} - {% if exp.is_current %}Present{% else %}{{ exp.end_date|date:"M Y" }}{% endif %}</p>
+                                    {% if exp.description %}
+                                        <p class="text-gray-600 mt-2 whitespace-pre-line">{{ exp.description }}</p>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-gray-500 italic">No experience added.</p>
+                        {% endif %}
+                    </dd>
+                </div>
+
+                <!-- Education -->
+                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 bg-gray-50">
+                    <dt class="text-sm font-medium text-gray-500">Education</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        {% if seeker_profile and seeker_profile.education.exists %}
+                            <ul class="space-y-4">
+                            {% for edu in applicant.seeker_profile.education.all %}
+                                <li>
+                                    <h4 class="font-bold text-gray-900">{{ edu.degree }}{% if edu.field_of_study %} in {{ edu.field_of_study }}{% endif %}</h4>
+                                    <p class="text-gray-700">{{ edu.institution }}</p>
+                                    <p class="text-gray-500 text-xs mt-1">{{ edu.start_date|date:"M Y" }} - {% if edu.end_date %}{{ edu.end_date|date:"M Y" }}{% else %}Present{% endif %}</p>
+                                    {% if edu.description %}
+                                        <p class="text-gray-600 mt-2 whitespace-pre-line">{{ edu.description }}</p>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-gray-500 italic">No education added.</p>
+                        {% endif %}
+                    </dd>
+                </div>
+                
+            </dl>
+        </div>
+    </div>
+</div>
+{% endblock %}

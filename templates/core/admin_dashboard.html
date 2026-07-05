@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Platform CMS - Jobbee{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="{ activeTab: 'dashboard' }">
+    <div class="mb-8">
+        <h1 class="text-3xl font-extrabold text-primary">Platform Content Management System</h1>
+        <p class="mt-2 text-sm text-gray-600">Manage site settings, view platform metrics, and oversee jobs and users.</p>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Sidebar Navigation -->
+        <div class="w-full lg:w-64 flex-shrink-0">
+            <nav class="space-y-1">
+                <button @click="activeTab = 'dashboard'" :class="{ 'bg-gray-100 text-gray-900': activeTab === 'dashboard', 'text-gray-600 hover:bg-gray-50 hover:text-gray-900': activeTab !== 'dashboard' }" class="group flex items-center px-3 py-2 text-sm font-medium rounded-md w-full transition">
+                    <svg class="flex-shrink-0 -ml-1 mr-3 h-6 w-6 text-gray-400 group-hover:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                    <span class="truncate">Overview</span>
+                </button>
+                <button @click="activeTab = 'analytics'" :class="{ 'bg-gray-100 text-gray-900': activeTab === 'analytics', 'text-gray-600 hover:bg-gray-50 hover:text-gray-900': activeTab !== 'analytics' }" class="group flex items-center px-3 py-2 text-sm font-medium rounded-md w-full transition">
+                    <svg class="flex-shrink-0 -ml-1 mr-3 h-6 w-6 text-gray-400 group-hover:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span class="truncate">Analytics Hub</span>
+                </button>
+                <button @click="activeTab = 'users'" :class="{ 'bg-gray-100 text-gray-900': activeTab === 'users', 'text-gray-600 hover:bg-gray-50 hover:text-gray-900': activeTab !== 'users' }" class="group flex items-center px-3 py-2 text-sm font-medium rounded-md w-full transition">
+                    <svg class="flex-shrink-0 -ml-1 mr-3 h-6 w-6 text-gray-400 group-hover:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <span class="truncate">User Management</span>
+                </button>
+                <button @click="activeTab = 'jobs'" :class="{ 'bg-gray-100 text-gray-900': activeTab === 'jobs', 'text-gray-600 hover:bg-gray-50 hover:text-gray-900': activeTab !== 'jobs' }" class="group flex items-center px-3 py-2 text-sm font-medium rounded-md w-full transition">
+                    <svg class="flex-shrink-0 -ml-1 mr-3 h-6 w-6 text-gray-400 group-hover:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <span class="truncate">Job Moderation</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1">
+            
+            <!-- Dashboard Tab -->
+            <div x-show="activeTab === 'dashboard'" x-cloak class="space-y-6">
+                <!-- Metrics Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                        <p class="text-sm font-medium text-gray-500 truncate">Total Users</p>
+                        <p class="mt-2 text-3xl font-extrabold text-primary">{{ total_users }}</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                        <p class="text-sm font-medium text-gray-500 truncate">Total Employers</p>
+                        <p class="mt-2 text-3xl font-extrabold text-primary">{{ total_employers }}</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                        <p class="text-sm font-medium text-gray-500 truncate">Total Seekers</p>
+                        <p class="mt-2 text-3xl font-extrabold text-primary">{{ total_seekers }}</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                        <p class="text-sm font-medium text-gray-500 truncate">Active Jobs</p>
+                        <p class="mt-2 text-3xl font-extrabold text-accent">{{ active_jobs }}</p>
+                    </div>
+                </div>
+
+                <!-- Chart Area -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <h3 class="text-lg font-bold text-primary mb-4">Platform Overview</h3>
+                    <div class="h-64 w-full">
+                        <canvas id="platformMetricsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Hub Tab -->
+            <div x-show="activeTab === 'analytics'" x-cloak class="space-y-6">
+                
+                <!-- Notice for Google Analytics -->
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-md">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-blue-700">
+                                <strong>Traffic & Marketing Analytics Note:</strong> For tracking Visitors, Bounce Rates, Funnels, and UTMs, please embed your <strong>Google Analytics 4 (GA4)</strong> or <strong>PostHog</strong> tracking script into `templates/base.html`. The charts below reflect deep platform business intelligence directly from the database.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Jobs by Employment Type Chart -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <h3 class="text-lg font-bold text-primary mb-4">Jobs by Employment Type</h3>
+                        <div class="h-64 w-full relative">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Remote vs Onsite Chart -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <h3 class="text-lg font-bold text-primary mb-4">Remote vs Onsite Jobs</h3>
+                        <div class="h-64 w-full relative">
+                            <canvas id="remoteChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Applied Jobs -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <h3 class="text-lg font-bold text-primary mb-4">Top 5 Most Applied Jobs</h3>
+                    <div class="h-64 w-full relative">
+                        <canvas id="topJobsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div x-show="activeTab === 'users'" x-cloak class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-primary">User Management</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for user_obj in all_users %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 font-bold">
+                                            {{ user_obj.email|first|upper }}
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">{{ user_obj.email }}</div>
+                                            <div class="text-sm text-gray-500">{{ user_obj.username }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if user_obj.is_employer %}bg-blue-100 text-blue-800{% elif user_obj.is_seeker %}bg-green-100 text-green-800{% else %}bg-purple-100 text-purple-800{% endif %}">
+                                        {% if user_obj.is_employer %}Employer{% elif user_obj.is_seeker %}Job Seeker{% else %}Admin{% endif %}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ user_obj.date_joined|date:"M d, Y" }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if user_obj.is_active %}
+                                        <span class="text-green-600 text-sm font-medium flex items-center"><span class="h-2 w-2 bg-green-500 rounded-full mr-2"></span>Active</span>
+                                    {% else %}
+                                        <span class="text-red-600 text-sm font-medium flex items-center"><span class="h-2 w-2 bg-red-500 rounded-full mr-2"></span>Deactivated</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    {% if user_obj != request.user %}
+                                    <form action="{% url 'admin_toggle_user_status' user_obj.id %}" method="post">
+                                        {% csrf_token %}
+                                        {% if user_obj.is_active %}
+                                            <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to deactivate this user?');">Deactivate</button>
+                                        {% else %}
+                                            <button type="submit" class="text-green-600 hover:text-green-900">Activate</button>
+                                        {% endif %}
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Jobs Tab -->
+            <div x-show="activeTab === 'jobs'" x-cloak class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-100 bg-gray-50">
+                    <h3 class="text-lg font-bold text-primary">Job Moderation</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job Title</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posted</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for job in all_jobs %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">{{ job.title }}</div>
+                                    <div class="text-sm text-gray-500">{{ job.location }} {% if job.remote_status == 'REMOTE' %}(Remote){% endif %}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ job.employer.employer_profile.company_name|default:"Unknown" }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ job.created_at|date:"M d, Y" }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if job.is_active %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                                    {% else %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex space-x-3 justify-end">
+                                    <a href="{% url 'job_detail' job.id %}" target="_blank" class="text-accent hover:text-accent-dark">View</a>
+                                    <form action="{% url 'admin_delete_job' job.id %}" method="post">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to permanently delete this job?');">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">No jobs found.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+
+        </div>
+    </div>
+</div>
+
+<!-- Alpine.js for Tabs -->
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<!-- Chart.js for Metrics -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Overview Chart
+    const ctxOverview = document.getElementById('platformMetricsChart').getContext('2d');
+    new Chart(ctxOverview, {
+        type: 'bar',
+        data: {
+            labels: ['Total Users', 'Employers', 'Seekers', 'Active Jobs', 'Applications'],
+            datasets: [{
+                label: 'Platform Metrics',
+                data: [{{ total_users }}, {{ total_employers }}, {{ total_seekers }}, {{ active_jobs }}, {{ total_applications }}],
+                backgroundColor: ['rgba(59, 130, 246, 0.5)', 'rgba(139, 92, 246, 0.5)', 'rgba(16, 185, 129, 0.5)', 'rgba(245, 158, 11, 0.5)', 'rgba(236, 72, 153, 0.5)'],
+                borderColor: ['rgba(59, 130, 246, 1)', 'rgba(139, 92, 246, 1)', 'rgba(16, 185, 129, 1)', 'rgba(245, 158, 11, 1)', 'rgba(236, 72, 153, 1)'],
+                borderWidth: 2,
+                borderRadius: 4
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
+    });
+
+    // Analytics: Jobs by Category
+    const ctxCategory = document.getElementById('categoryChart').getContext('2d');
+    new Chart(ctxCategory, {
+        type: 'doughnut',
+        data: {
+            labels: {{ cat_labels|safe }},
+            datasets: [{
+                data: {{ cat_data|safe }},
+                backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#6b7280'],
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    // Analytics: Remote vs Onsite
+    const ctxRemote = document.getElementById('remoteChart').getContext('2d');
+    new Chart(ctxRemote, {
+        type: 'pie',
+        data: {
+            labels: ['Remote', 'On-site'],
+            datasets: [{
+                data: [{{ remote_jobs }}, {{ onsite_jobs }}],
+                backgroundColor: ['#8b5cf6', '#f43f5e'],
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    // Analytics: Top Applied Jobs
+    const ctxTopJobs = document.getElementById('topJobsChart').getContext('2d');
+    new Chart(ctxTopJobs, {
+        type: 'bar',
+        data: {
+            labels: {{ top_jobs_labels|safe }},
+            datasets: [{
+                label: 'Total Applications',
+                data: {{ top_jobs_data|safe }},
+                backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+        }
+    });
+
+});
+</script>
+<style>
+    [x-cloak] { display: none !important; }
+</style>
+{% endblock %}

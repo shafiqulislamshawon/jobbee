@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div class="md:flex md:items-center md:justify-between mb-8">
+        <div class="flex-1 min-w-0">
+            <h2 class="text-2xl font-bold leading-7 text-primary sm:text-3xl sm:truncate">
+                My Dashboard
+            </h2>
+            <p class="mt-1 text-sm text-gray-500">
+                Welcome back, {{ request.user.first_name|default:request.user.username }}!
+            </p>
+        </div>
+        <div class="mt-4 flex md:mt-0 md:ml-4">
+            <a href="{% url 'job_list' %}" class="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+                Browse Jobs
+            </a>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-8">
+        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200">
+            <div class="px-4 py-5 sm:p-6">
+                <dt class="text-sm font-medium text-gray-500 truncate">Total Applications</dt>
+                <dd class="mt-1 text-3xl font-extrabold text-primary">{{ total_applications }}</dd>
+            </div>
+        </div>
+        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200">
+            <div class="px-4 py-5 sm:p-6">
+                <dt class="text-sm font-medium text-gray-500 truncate">Pending Review</dt>
+                <dd class="mt-1 text-3xl font-extrabold text-yellow-600">{{ pending_applications }}</dd>
+            </div>
+        </div>
+        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200">
+            <div class="px-4 py-5 sm:p-6">
+                <dt class="text-sm font-medium text-gray-500 truncate">Rejected</dt>
+                <dd class="mt-1 text-3xl font-extrabold text-red-600">{{ rejected_applications }}</dd>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Summary Section -->
+    <div class="bg-white shadow-sm sm:rounded-lg border border-gray-200 mb-8 p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">My Profile</h3>
+            <a href="{% url 'edit_profile' %}" class="text-sm font-medium text-accent hover:underline">Edit Basic Info</a>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Basic Info -->
+            <div>
+                <p class="text-sm text-gray-500 mb-1">Resume</p>
+                {% if request.user.seeker_profile.resume %}
+                    <a href="{{ request.user.seeker_profile.resume.url }}" target="_blank" class="text-sm text-accent hover:underline flex items-center">
+                        <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                        </svg>
+                        View Resume
+                    </a>
+                {% else %}
+                    <span class="text-sm text-gray-400">Not uploaded</span>
+                {% endif %}
+            </div>
+            
+            <div>
+                <p class="text-sm text-gray-500 mb-1">Portfolio / Website</p>
+                {% if request.user.seeker_profile.portfolio_url %}
+                    <a href="{{ request.user.seeker_profile.portfolio_url }}" target="_blank" class="text-sm text-accent hover:underline">{{ request.user.seeker_profile.portfolio_url }}</a>
+                {% else %}
+                    <span class="text-sm text-gray-400">Not provided</span>
+                {% endif %}
+            </div>
+            
+            <div class="md:col-span-2">
+                <p class="text-sm text-gray-500 mb-1">Skills</p>
+                <p class="text-sm text-gray-900">{{ request.user.seeker_profile.skills|default:"<span class='text-gray-400'>No skills added</span>"|safe }}</p>
+            </div>
+        </div>
+
+        <hr class="my-6 border-gray-100">
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Education -->
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="text-md font-medium text-gray-900">Education</h4>
+                    <a href="{% url 'add_education' %}" class="text-sm font-medium text-accent hover:underline">+ Add</a>
+                </div>
+                {% for edu in request.user.seeker_profile.education.all %}
+                    <div class="mb-3">
+                        <p class="text-sm font-bold text-gray-900">{{ edu.degree }}{% if edu.field_of_study %} in {{ edu.field_of_study }}{% endif %}</p>
+                        <p class="text-sm text-gray-600">{{ edu.institution }}</p>
+                        <p class="text-xs text-gray-500">{{ edu.start_date|date:"Y" }} - {% if edu.end_date %}{{ edu.end_date|date:"Y" }}{% else %}Present{% endif %}</p>
+                    </div>
+                {% empty %}
+                    <p class="text-sm text-gray-400">No education added.</p>
+                {% endfor %}
+            </div>
+
+            <!-- Experience -->
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="text-md font-medium text-gray-900">Experience</h4>
+                    <a href="{% url 'add_experience' %}" class="text-sm font-medium text-accent hover:underline">+ Add</a>
+                </div>
+                {% for exp in request.user.seeker_profile.experience.all %}
+                    <div class="mb-3">
+                        <p class="text-sm font-bold text-gray-900">{{ exp.job_title }}</p>
+                        <p class="text-sm text-gray-600">{{ exp.company }}</p>
+                        <p class="text-xs text-gray-500">{{ exp.start_date|date:"M Y" }} - {% if exp.is_current %}Present{% else %}{{ exp.end_date|date:"M Y" }}{% endif %}</p>
+                    </div>
+                {% empty %}
+                    <p class="text-sm text-gray-400">No experience added.</p>
+                {% endfor %}
+            </div>
+
+            <!-- Certifications -->
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="text-md font-medium text-gray-900">Certifications</h4>
+                    <a href="{% url 'add_certification' %}" class="text-sm font-medium text-accent hover:underline">+ Add</a>
+                </div>
+                {% for cert in request.user.seeker_profile.certifications.all %}
+                    <div class="mb-2">
+                        <p class="text-sm font-bold text-gray-900">{{ cert.name }}</p>
+                        <p class="text-xs text-gray-600">{{ cert.issuer }} &middot; Issued {{ cert.issue_date|date:"Y" }}</p>
+                    </div>
+                {% empty %}
+                    <p class="text-sm text-gray-400">No certifications added.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white shadow-sm overflow-hidden sm:rounded-lg border border-gray-200">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                My Applications
+            </h3>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                {{ applications.count }} Applied
+            </span>
+        </div>
+        <ul role="list" class="divide-y divide-gray-200">
+            {% for app in applications %}
+            <li>
+                <div class="block">
+                    <div class="px-4 py-4 sm:px-6">
+                        <div class="flex items-center justify-between">
+                            <a href="{% url 'job_detail' app.job.id %}" class="text-sm font-bold text-accent hover:underline truncate">
+                                {{ app.job.title }}
+                            </a>
+                            <div class="ml-2 flex-shrink-0 flex">
+                                <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if app.status == 'PENDING' %}bg-yellow-100 text-yellow-800
+                                    {% elif app.status == 'REVIEWED' %}bg-blue-100 text-blue-800
+                                    {% elif app.status == 'REJECTED' %}bg-red-100 text-red-800
+                                    {% else %}bg-green-100 text-green-800{% endif %}">
+                                    {{ app.get_status_display }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="mt-2 sm:flex sm:justify-between">
+                            <div class="sm:flex">
+                                <p class="flex items-center text-sm text-gray-500">
+                                    <svg class="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m3-4h1m-1 4h1m-5 8h8" />
+                                    </svg>
+                                    {{ app.job.employer.employer_profile.company_name|default:app.job.employer.username }}
+                                </p>
+                                <p class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                                    <svg class="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    </svg>
+                                    {{ app.job.location|default:"Remote" }}
+                                </p>
+                            </div>
+                            <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                                <svg class="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <p>
+                                    Applied on <time datetime="{{ app.applied_at|date:'Y-m-d' }}">{{ app.applied_at|date:"M d, Y" }}</time>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            {% empty %}
+            <li>
+                <div class="px-4 py-12 sm:px-6 text-center text-gray-500 text-sm">
+                    You haven't applied to any jobs yet.
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Post a New Job - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+        <div class="px-4 py-5 sm:px-6 bg-gray-50 border-b border-gray-200">
+            <h2 class="text-2xl font-bold leading-7 text-primary">Post a New Job</h2>
+            <p class="mt-1 text-sm text-gray-500">Fill out the details below to publish a new job opportunity.</p>
+        </div>
+        
+        <div class="p-6 sm:p-8">
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="bg-red-50 p-4 rounded-md border border-red-200 mb-6">
+                    <h3 class="text-sm font-medium text-red-800">Please correct the errors below.</h3>
+                    <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+                    <!-- Title -->
+                    <div class="sm:col-span-2">
+                        <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700">Job Title</label>
+                        <div class="mt-1">
+                            <input type="text" name="{{ form.title.name }}" id="{{ form.title.id_for_label }}" required class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                    </div>
+
+                    <!-- Type and Remote -->
+                    <div>
+                        <label for="{{ form.employment_type.id_for_label }}" class="block text-sm font-medium text-gray-700">Employment Type</label>
+                        <div class="mt-1">
+                            {{ form.employment_type }}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.remote_status.id_for_label }}" class="block text-sm font-medium text-gray-700">Remote Status</label>
+                        <div class="mt-1">
+                            {{ form.remote_status }}
+                        </div>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="sm:col-span-2">
+                        <label for="{{ form.location.id_for_label }}" class="block text-sm font-medium text-gray-700">Location</label>
+                        <div class="mt-1">
+                            <input type="text" name="{{ form.location.name }}" id="{{ form.location.id_for_label }}" class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                    </div>
+                    
+                    <!-- Salary Min/Max and Currency -->
+                    <div class="sm:col-span-2">
+                        <label for="{{ form.currency.id_for_label }}" class="block text-sm font-medium text-gray-700">Currency</label>
+                        <div class="mt-1">
+                            {{ form.currency }}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.salary_min.id_for_label }}" class="block text-sm font-medium text-gray-700">Minimum Salary</label>
+                        <div class="mt-1">
+                            <input type="number" name="{{ form.salary_min.name }}" id="{{ form.salary_min.id_for_label }}" class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.salary_max.id_for_label }}" class="block text-sm font-medium text-gray-700">Maximum Salary</label>
+                        <div class="mt-1">
+                            <input type="number" name="{{ form.salary_max.name }}" id="{{ form.salary_max.id_for_label }}" class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="sm:col-span-2">
+                        <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700">Job Description</label>
+                        <div class="mt-1">
+                            <textarea name="{{ form.description.name }}" id="{{ form.description.id_for_label }}" rows="4" required class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Requirements -->
+                    <div class="sm:col-span-2">
+                        <label for="{{ form.requirements.id_for_label }}" class="block text-sm font-medium text-gray-700">Requirements</label>
+                        <div class="mt-1">
+                            <textarea name="{{ form.requirements.name }}" id="{{ form.requirements.id_for_label }}" rows="3" class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Responsibilities -->
+                    <div class="sm:col-span-2">
+                        <label for="{{ form.responsibilities.id_for_label }}" class="block text-sm font-medium text-gray-700">Responsibilities</label>
+                        <div class="mt-1">
+                            <textarea name="{{ form.responsibilities.name }}" id="{{ form.responsibilities.id_for_label }}" rows="3" class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Skills -->
+                    <div class="sm:col-span-2">
+                        <label for="{{ form.skills.id_for_label }}" class="block text-sm font-medium text-gray-700">Skills (Comma separated)</label>
+                        <div class="mt-1">
+                            <input type="text" name="{{ form.skills.name }}" id="{{ form.skills.id_for_label }}" class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                    </div>
+                    
+                    <!-- Experience & Education -->
+                    <div>
+                        <label for="{{ form.experience.id_for_label }}" class="block text-sm font-medium text-gray-700">Experience Required</label>
+                        <div class="mt-1">
+                            <input type="text" name="{{ form.experience.name }}" id="{{ form.experience.id_for_label }}" class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md" placeholder="e.g. 3-5 Years">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.education.id_for_label }}" class="block text-sm font-medium text-gray-700">Education Required</label>
+                        <div class="mt-1">
+                            <input type="text" name="{{ form.education.name }}" id="{{ form.education.id_for_label }}" class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md" placeholder="e.g. Bachelor's Degree">
+                        </div>
+                    </div>
+                    
+                    <!-- Benefits -->
+                    <div class="sm:col-span-2">
+                        <label for="{{ form.benefits.id_for_label }}" class="block text-sm font-medium text-gray-700">Benefits</label>
+                        <div class="mt-1">
+                            <textarea name="{{ form.benefits.name }}" id="{{ form.benefits.id_for_label }}" rows="2" class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Deadline -->
+                    <div class="sm:col-span-2 md:col-span-1">
+                        <label for="{{ form.deadline.id_for_label }}" class="block text-sm font-medium text-gray-700">Application Deadline (Optional)</label>
+                        <div class="mt-1">
+                            {{ form.deadline }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pt-5 flex justify-end">
+                    <a href="{% url 'dashboard' %}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent mr-3">
+                        Cancel
+                    </a>
+                    <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-accent hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
+                        Publish Job
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Basic tailwind styling for the auto-rendered django fields */
+    select, input[type="date"] {
+        @apply shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md;
+    }
+</style>
+{% endblock %}

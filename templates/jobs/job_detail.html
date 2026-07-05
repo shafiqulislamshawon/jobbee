@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ job.title }} - {{ site_settings.site_name }}{% endblock %}
+
+{% block extra_head %}
+<meta property="og:title" content="{{ job.title }} at {{ job.employer.employer_profile.company_name|default:job.employer.username|escapejs }}" />
+<meta property="og:description" content="{{ job.description|truncatewords:20|escapejs }}" />
+<meta property="og:url" content="{{ request.build_absolute_uri }}" />
+<meta property="og:type" content="website" />
+<script type="application/ld+json">
+{
+  "@context" : "https://schema.org/",
+  "@type" : "JobPosting",
+  "title" : "{{ job.title|escapejs }}",
+  "description" : "<p>{{ job.description|linebreaksbr|escapejs }}</p>",
+  "identifier": {
+    "@type": "PropertyValue",
+    "name": "{{ job.employer.employer_profile.company_name|default:job.employer.username|escapejs }}",
+    "value": "{{ job.id }}"
+  },
+  "datePosted" : "{{ job.created_at|date:'Y-m-d' }}",
+  "validThrough" : "{{ job.deadline|date:'Y-m-d'|default:'' }}",
+  "employmentType" : "{{ job.get_employment_type_display|upper }}",
+  "hiringOrganization" : {
+    "@type" : "Organization",
+    "name" : "{{ job.employer.employer_profile.company_name|default:job.employer.username|escapejs }}",
+    "sameAs" : "{{ request.build_absolute_uri|slice:':-1' }}{% url 'company_detail' job.employer.employer_profile.id %}",
+    "logo" : "{% if job.employer.employer_profile.logo %}{{ request.build_absolute_uri|slice:':-1' }}{{ job.employer.employer_profile.logo.url }}{% endif %}"
+  },
+  "jobLocation": {
+    "@type": "Place",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "{{ job.location|escapejs }}",
+      "addressRegion": "",
+      "postalCode": "",
+      "addressCountry": "US"
+    }
+  }{% if job.salary_min %},
+    "baseSalary": {
+      "@type": "MonetaryAmount",
+      "currency": "{{ job.currency }}",
+      "value": {
+        "@type": "QuantitativeValue",
+      "value": {{ job.salary_min }},
+      {% if job.salary_max %}"maxValue": {{ job.salary_max }},{% endif %}
+      "unitText": "YEAR"
+    }
+  }
+  {% endif %}
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
+        <div class="flex items-start justify-between">
+            <div>
+                <h1 class="text-3xl font-extrabold text-primary mb-2">{{ job.title }}</h1>
+                <a href="{% url 'company_detail' job.employer.employer_profile.id %}" class="text-lg font-medium text-accent hover:underline mb-6 block">
+                    {{ job.employer.employer_profile.company_name|default:job.employer.username }}
+                </a>
+                
+                <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-6">
+                    <span class="flex items-center">
+                        <svg class="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        </svg>
+                        {{ job.location|default:"Remote" }}
+                    </span>
+                    <span class="flex items-center">
+                        <svg class="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        {{ job.get_employment_type_display }}
+                    </span>
+                    {% if job.salary_min %}
+                    <div class="flex items-center text-gray-700">
+                        <svg class="h-5 w-5 mr-3 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {{ job.currency_symbol }}{{ job.salary_min }} {% if job.salary_max %} - {{ job.currency_symbol }}{{ job.salary_max }}{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if job.employer.employer_profile.logo %}
+                <img src="{{ job.employer.employer_profile.logo.url }}" alt="Logo" class="h-16 w-16 object-contain rounded border border-gray-100 p-1">
+            {% endif %}
+        </div>
+        
+        <div class="border-t border-gray-100 pt-6 mt-2">
+            {% if request.user.is_authenticated and request.user.is_seeker %}
+                {% if has_applied %}
+                    <button disabled class="bg-gray-300 text-gray-700 font-medium px-8 py-3 rounded-lg cursor-not-allowed">
+                        Already Applied
+                    </button>
+                {% else %}
+                    <a href="{% url 'apply_job' job.id %}" class="inline-block bg-accent text-white font-medium px-8 py-3 rounded-lg hover:opacity-90 transition shadow-sm">
+                        Apply Now
+                    </a>
+                {% endif %}
+            {% elif request.user.is_employer %}
+                <!-- Employer sees nothing or edit button -->
+            {% else %}
+                <a href="{% url 'login' %}?next={{ request.path }}" class="inline-block bg-primary text-white font-medium px-8 py-3 rounded-lg hover:bg-gray-800 transition shadow-sm">
+                    Sign in to Apply
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Details -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 space-y-8">
+        <div>
+            <h2 class="text-xl font-bold text-primary mb-4">Job Description</h2>
+            <div class="prose prose-gray max-w-none text-gray-700 whitespace-pre-wrap">{{ job.description }}</div>
+        </div>
+        
+        {% if job.responsibilities %}
+        <div>
+            <h2 class="text-xl font-bold text-primary mb-4">Responsibilities</h2>
+            <div class="prose prose-gray max-w-none text-gray-700 whitespace-pre-wrap">{{ job.responsibilities }}</div>
+        </div>
+        {% endif %}
+        
+        {% if job.requirements %}
+        <div>
+            <h2 class="text-xl font-bold text-primary mb-4">Requirements</h2>
+            <div class="prose prose-gray max-w-none text-gray-700 whitespace-pre-wrap">{{ job.requirements }}</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

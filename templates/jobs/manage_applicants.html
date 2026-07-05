@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Applicants - {{ job.title }} - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="h-[calc(100vh-4rem)] flex flex-col bg-gray-50">
+    <div class="bg-white border-b border-gray-200 shadow-sm shrink-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-primary">{{ job.title }}</h1>
+                <p class="text-sm text-gray-500 mt-1">Manage Candidates Pipeline</p>
+            </div>
+            
+            <div class="flex items-center space-x-6">
+                <!-- Analytics -->
+                <div class="flex space-x-6 border-r border-gray-200 pr-6">
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-gray-900">{{ job.views_count }}</p>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mt-1">Views</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-blue-600">{{ job.applications.count }}</p>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mt-1">Applicants</p>
+                    </div>
+                </div>
+                
+                <button onclick="document.getElementById('analyticsModal').classList.remove('hidden')" class="shrink-0 text-sm font-bold text-white bg-accent px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition flex items-center">
+                    <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Advanced Analytics
+                </button>
+                
+                <a href="{% url 'dashboard' %}" class="shrink-0 text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-300 px-4 py-2 rounded-lg bg-white shadow-sm hover:bg-gray-50 transition">
+                    &larr; Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kanban Board -->
+    <div class="flex-1 overflow-x-auto py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+            <div class="flex gap-6 h-full items-start">
+                {% for status, apps in board.items %}
+                <div class="bg-gray-100 rounded-lg w-80 shrink-0 flex flex-col max-h-full border border-gray-200 shadow-sm">
+                    <div class="p-4 border-b border-gray-200 bg-gray-100/50 rounded-t-lg">
+                    <h3 class="font-semibold text-primary uppercase text-xs tracking-wider flex items-center justify-between">
+                        {{ status }}
+                        <span class="bg-white text-gray-600 px-2 py-0.5 rounded-full text-xs font-bold border border-gray-200 shadow-sm">{{ apps|length }}</span>
+                    </h3>
+                </div>
+                
+                <div class="p-3 flex-1 overflow-y-auto kanban-column space-y-3 min-h-[150px]" data-status="{{ status }}">
+                    {% for app in apps %}
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 cursor-grab active:cursor-grabbing hover:border-accent transition group kanban-card" data-id="{{ app.id }}" draggable="true">
+                        <div class="flex items-start justify-between mb-2">
+                            <h4 class="font-bold text-gray-900 text-sm">{{ app.applicant.first_name|default:app.applicant.username }} {{ app.applicant.last_name }}</h4>
+                            {% if app.applicant.seeker_profile.resume %}
+                            <a href="{{ app.applicant.seeker_profile.resume.url }}" target="_blank" class="text-xs text-accent hover:underline opacity-0 group-hover:opacity-100 transition" title="View Resume">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                </svg>
+                            </a>
+                            {% endif %}
+                        </div>
+                        <p class="text-xs text-gray-500 mb-3 truncate">{{ app.applicant.email }}</p>
+                        
+                        <div class="text-xs text-gray-400 flex items-center justify-between mt-4 pt-3 border-t border-gray-50">
+                            <span>Applied {{ app.applied_at|date:"M d" }}</span>
+                            <!-- View Full Profile Button -->
+                            <a href="{% url 'applicant_profile' app.applicant.id %}" target="_blank" class="text-accent hover:text-blue-700 font-medium">View Profile</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        </div>
+    </div>
+</div>
+
+<!-- Analytics Modal -->
+<div id="analyticsModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="document.getElementById('analyticsModal').classList.add('hidden')"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 border-b border-gray-100">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl leading-6 font-bold text-gray-900" id="modal-title">
+                        Advanced Post Analytics
+                    </h3>
+                    <button onclick="document.getElementById('analyticsModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-500">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="px-4 py-5 sm:p-6 bg-gray-50">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Funnel -->
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm col-span-1 md:col-span-2">
+                        <h4 class="font-bold text-gray-900 mb-4">Conversion Funnel</h4>
+                        <div class="flex justify-between items-center max-w-2xl mx-auto">
+                            <div class="text-center">
+                                <div class="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center border-4 border-white shadow mx-auto">
+                                    <span class="text-2xl font-black text-blue-600" id="stat-views">0</span>
+                                </div>
+                                <p class="mt-3 font-semibold text-gray-700">Views</p>
+                            </div>
+                            <div class="flex-1 border-t-2 border-dashed border-gray-300 mx-4 relative">
+                                <span class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-50 text-xs font-bold text-gray-500 px-2 rounded-full border border-gray-200" id="stat-conversion">0%</span>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center border-4 border-white shadow mx-auto">
+                                    <span class="text-2xl font-black text-green-600" id="stat-clicks">0</span>
+                                </div>
+                                <p class="mt-3 font-semibold text-gray-700">Applies</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Gender -->
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                        <h4 class="font-bold text-gray-900 mb-4">Gender Distribution</h4>
+                        <div class="relative h-64">
+                            <canvas id="genderChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Age Group -->
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                        <h4 class="font-bold text-gray-900 mb-4">Age Demographics</h4>
+                        <div class="relative h-64">
+                            <canvas id="ageChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const columns = document.querySelectorAll('.kanban-column');
+    const cards = document.querySelectorAll('.kanban-card');
+    
+    cards.forEach(card => {
+        card.addEventListener('dragstart', dragStart);
+        card.addEventListener('dragend', dragEnd);
+    });
+
+    columns.forEach(column => {
+        column.addEventListener('dragover', dragOver);
+        column.addEventListener('dragenter', dragEnter);
+        column.addEventListener('dragleave', dragLeave);
+        column.addEventListener('drop', dragDrop);
+    });
+
+    let draggedCard = null;
+
+    function dragStart() {
+        draggedCard = this;
+        setTimeout(() => this.classList.add('opacity-50'), 0);
+    }
+
+    function dragEnd() {
+        draggedCard = null;
+        this.classList.remove('opacity-50');
+    }
+
+    function dragOver(e) {
+        e.preventDefault();
+    }
+
+    function dragEnter(e) {
+        e.preventDefault();
+        this.classList.add('bg-gray-200');
+    }
+
+    function dragLeave() {
+        this.classList.remove('bg-gray-200');
+    }
+
+    function dragDrop() {
+        this.classList.remove('bg-gray-200');
+        const status = this.getAttribute('data-status');
+        const appId = draggedCard.getAttribute('data-id');
+        
+        // Append card visually
+        this.appendChild(draggedCard);
+
+        // Update server
+        fetch(`/applications/${appId}/update-status/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ status: status })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(!data.success) {
+                alert('Error updating status');
+                window.location.reload();
+            } else {
+                updateCounts();
+            }
+        });
+    }
+
+    function updateCounts() {
+        document.querySelectorAll('.kanban-column').forEach(column => {
+            const count = column.querySelectorAll('.kanban-card').length;
+            column.previousElementSibling.querySelector('span').textContent = count;
+        });
+    }
+
+    // Analytics Charting Logic
+    const analyticsData = JSON.parse('{{ analytics|escapejs }}');
+    
+    document.getElementById('stat-views').textContent = analyticsData.total_views;
+    document.getElementById('stat-clicks').textContent = analyticsData.total_clicks;
+    document.getElementById('stat-conversion').textContent = analyticsData.conversion_rate + '%';
+    
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    };
+
+    new Chart(document.getElementById('genderChart'), {
+        type: 'doughnut',
+        data: {
+            labels: analyticsData.gender_labels,
+            datasets: [{
+                data: analyticsData.gender_data,
+                backgroundColor: ['#3b82f6', '#ec4899', '#8b5cf6', '#64748b', '#cbd5e1']
+            }]
+        },
+        options: chartOptions
+    });
+    
+    new Chart(document.getElementById('ageChart'), {
+        type: 'bar',
+        data: {
+            labels: analyticsData.age_labels,
+            datasets: [{
+                label: 'Applicants',
+                data: analyticsData.age_data,
+                backgroundColor: '#3b82f6',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        }
+    });
+</script>
+{% endblock %}

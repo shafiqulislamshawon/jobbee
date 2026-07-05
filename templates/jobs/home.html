@@ -1,0 +1,405 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_head %}
+<style>
+    /* Pristine Light Theme Overrides */
+    body {
+        background-color: #f9fafb;
+        color: #111827;
+    }
+
+    /* Subtle Light Grid Pattern */
+    .bg-grid-light {
+        background-size: 40px 40px;
+        background-image: 
+            linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+        mask-image: radial-gradient(circle at 50% 0%, black, transparent 80%);
+        -webkit-mask-image: radial-gradient(circle at 50% 0%, black, transparent 80%);
+    }
+
+    /* Light Text Gradients */
+    .text-glow-light {
+        background: linear-gradient(180deg, #111827 0%, #4b5563 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.04em;
+    }
+    
+    .text-accent-glow-light {
+        background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Light Command Center (Glassmorphism) */
+    .command-center-light {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    .command-center-light:focus-within {
+        border-color: rgba(59, 130, 246, 0.3);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 20px 25px -5px rgba(59, 130, 246, 0.15), 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+
+    /* Image Masking for Light BG */
+    .hero-image-mask-light {
+        mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
+        -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
+    }
+
+    /* Light Spotlight Cards */
+    #cards-container:hover .spotlight-card-light::after {
+        opacity: 1;
+    }
+    @keyframes gradient-border {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    .spotlight-card-light {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.5), rgba(139, 92, 246, 0.5), rgba(236, 72, 153, 0.5));
+        background-size: 200% 200%;
+        animation: gradient-border 4s ease infinite;
+        border: none;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .spotlight-card-light::before,
+    .spotlight-card-light::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+        transition: opacity 0.3s ease;
+    }
+    /* Inner card spotlight */
+    .spotlight-card-light::before {
+        background: radial-gradient(
+            800px circle at var(--mouse-x) var(--mouse-y),
+            rgba(0, 0, 0, 0.02),
+            transparent 40%
+        );
+        opacity: 0;
+    }
+    /* Border spotlight */
+    .spotlight-card-light::after {
+        background: radial-gradient(
+            600px circle at var(--mouse-x) var(--mouse-y),
+            rgba(59, 130, 246, 0.15),
+            transparent 40%
+        );
+        z-index: -1;
+        opacity: 0;
+    }
+    .spotlight-card-light:hover::before {
+        opacity: 1;
+    }
+    
+    .card-content-light {
+        position: relative;
+        z-index: 10;
+        background: #ffffff;
+        height: 100%;
+        border-radius: inherit;
+        margin: 1px; /* Exposes border gradient */
+    }
+
+    /* Light Badges */
+    .badge-light {
+        background: rgba(0, 0, 0, 0.03);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        color: #4b5563;
+    }
+    .badge-primary-light {
+        background: rgba(59, 130, 246, 0.08);
+        border: 1px solid rgba(59, 130, 246, 0.15);
+        color: #2563eb;
+    }
+
+    /* Marquee Animation */
+    @keyframes marquee {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+    .animate-marquee {
+        animation: marquee 20s linear infinite;
+        display: flex;
+        width: fit-content;
+    }
+    .animate-marquee:hover {
+        animation-play-state: paused;
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Premium Light Hero -->
+<div class="relative min-h-[60vh] flex flex-col justify-center overflow-hidden bg-white">
+    <!-- Grid Pattern Background -->
+    <div class="absolute inset-0 bg-grid-light pointer-events-none"></div>
+    
+    <!-- Soft ambient glow behind hero -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-blue-100 rounded-full blur-[120px] pointer-events-none opacity-60"></div>
+    <div class="absolute top-32 left-1/2 translate-x-1/4 w-[600px] h-[600px] bg-purple-100 rounded-full blur-[120px] pointer-events-none opacity-60"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full py-20">
+        <div class="flex flex-col items-center justify-center text-center max-w-4xl mx-auto">
+            
+            <!-- Trust Badge -->
+            <div class="reveal-on-scroll inline-flex items-center px-3 py-1 rounded-full border border-gray-200 bg-white/80 backdrop-blur-md mb-8 text-xs font-semibold text-gray-600 shadow-sm">
+                <span class="relative flex h-2 w-2 mr-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                </span>
+                Platform v2.0 is Live
+            </div>
+            
+            <h1 class="reveal-on-scroll delay-100 text-6xl sm:text-7xl lg:text-8xl font-black text-glow-light mb-6 leading-[1.1]">
+                Ship your <br>
+                <span class="text-accent-glow-light">career.</span>
+            </h1>
+            
+            <p class="reveal-on-scroll delay-200 text-lg sm:text-xl text-gray-500 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
+                The ultra-fast, premium hiring infrastructure designed for top-tier engineers, designers, and innovators.
+            </p>
+            
+            <!-- Command Center Search -->
+            <form action="{% url 'job_list' %}" method="GET" class="reveal-on-scroll delay-300 command-center-light rounded-2xl p-1.5 flex flex-col sm:flex-row w-full max-w-3xl mx-auto shadow-[0_0_50px_rgba(0,0,0,0.05)]" onsubmit="Analytics.trackJobSearch(this.q.value, this.location.value);">
+                <div class="flex-1 flex items-center px-4 py-3 border-b sm:border-b-0 sm:border-r border-gray-100">
+                    <svg class="h-5 w-5 text-gray-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input type="text" name="q" placeholder="Search roles..." class="w-full text-gray-900 placeholder-gray-400 focus:outline-none bg-transparent font-medium">
+                </div>
+                <div class="flex-1 flex items-center px-4 py-3">
+                    <svg class="h-5 w-5 text-gray-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <input type="text" name="location" placeholder="Location or Remote" class="w-full text-gray-900 placeholder-gray-400 focus:outline-none bg-transparent font-medium">
+                </div>
+                <button type="submit" class="bg-gray-900 text-white font-semibold px-6 py-3 rounded-xl hover:bg-gray-800 transition-colors shadow-lg mt-2 sm:mt-0 whitespace-nowrap">
+                    Find Roles
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Unified Logos & Stats Marquee (Light) -->
+<!-- Marquee Logos (Top Section) -->
+<div class="border-y border-gray-200 bg-white relative z-20 py-4 overflow-hidden flex items-center">
+    <!-- Solid label to prevent overlap -->
+    <div class="flex items-center space-x-4 absolute left-0 top-0 bottom-0 z-30 bg-white pr-8 pl-4 sm:pl-6 lg:pl-8 shadow-[20px_0_20px_-5px_rgba(255,255,255,1)]">
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest border-r border-gray-200 pr-4">Hiring Partners</p>
+    </div>
+    
+    <!-- Marquee Track -->
+    <div class="animate-marquee opacity-60 grayscale hover:grayscale-0 transition-all duration-300">
+        <!-- Group 1 -->
+        <div class="flex items-center space-x-16 px-8">
+            <span class="text-lg font-extrabold text-gray-800 tracking-wide">Google</span>
+            <span class="text-lg font-extrabold text-gray-800 tracking-wide">Stripe</span>
+            <span class="text-lg font-extrabold text-gray-800 tracking-wide">Airbnb</span>
+            <span class="text-lg font-extrabold text-gray-800 tracking-wide">Meta</span>
+            <span class="text-lg font-extrabold text-gray-800 tracking-wide">Amazon</span>
+            <span class="text-lg font-extrabold text-gray-800 tracking-wide">Netflix</span>
+            <span class="text-lg font-extrabold text-gray-800 tracking-wide">Apple</span>
+            <span class="text-lg font-extrabold text-gray-800 tracking-wide">Spotify</span>
+        </div>
+        <!-- Group 2 (Exact Duplicate) -->
+        <div class="flex items-center space-x-16 px-8">
+            <span class="text-lg font-extrabold text-gray-800 tracking-wide">Google</span>
+            <span class="text-lg font-extrabold text-gray-800 tracking-wide">Stripe</span>
+            <span class="text-lg font-extrabold text-gray-800 tracking-wide">Airbnb</span>
+            <span class="text-lg font-extrabold text-gray-800 tracking-wide">Meta</span>
+            <span class="text-lg font-extrabold text-gray-800 tracking-wide">Amazon</span>
+            <span class="text-lg font-extrabold text-gray-800 tracking-wide">Netflix</span>
+            <span class="text-lg font-extrabold text-gray-800 tracking-wide">Apple</span>
+            <span class="text-lg font-extrabold text-gray-800 tracking-wide">Spotify</span>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Section (Bottom Section) -->
+<div class="reveal-on-scroll bg-white border-b border-gray-200 py-8 sm:py-12 relative z-20" id="stats-section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-row items-center justify-center gap-4 sm:gap-12 md:gap-24">
+            <div class="text-center">
+                <p class="text-2xl sm:text-4xl font-black text-blue-600"><span class="stat-counter" data-target="10">0</span>k+</p>
+                <p class="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-widest mt-1 sm:mt-2">Active Jobs</p>
+            </div>
+            <div class="w-px h-8 sm:h-12 bg-gray-200 block"></div>
+            <div class="text-center">
+                <p class="text-2xl sm:text-4xl font-black text-blue-600"><span class="stat-counter" data-target="5">0</span>k+</p>
+                <p class="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-widest mt-1 sm:mt-2">Employers</p>
+            </div>
+            <div class="w-px h-8 sm:h-12 bg-gray-200 block"></div>
+            <div class="text-center">
+                <p class="text-2xl sm:text-4xl font-black text-blue-600"><span class="stat-counter" data-target="24">0</span>h</p>
+                <p class="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-widest mt-1 sm:mt-2">Avg. Response</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trending Opportunities (Spotlight Area Light) -->
+<div class="relative py-32 overflow-hidden bg-gray-50">
+    <!-- Ambient glow behind jobs -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-[400px] bg-blue-100 rounded-full blur-[100px] pointer-events-none opacity-50"></div>
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="reveal-on-scroll flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
+            <div class="mb-4 md:mb-0">
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight mb-2">Trending Roles</h2>
+                <p class="text-gray-500 font-medium">Exclusive positions available right now.</p>
+            </div>
+            <a href="{% url 'job_list' %}" class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition flex items-center">
+                Explore all roles
+                <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </a>
+        </div>
+
+        <div id="cards-container" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {% for job in recent_jobs %}
+            <!-- Light Spotlight Card -->
+            <a href="{% url 'job_detail' job.id %}" onclick="Analytics.trackJobClick('{{ job.title|escapejs }}', '{{ job.employer.username|escapejs }}')" class="reveal-on-scroll spotlight-card-light rounded-2xl block h-full group">
+                <div class="card-content-light p-6 flex flex-col rounded-2xl">
+                    <div class="flex items-start justify-between mb-6">
+                        <div class="flex-1 pr-4">
+                            <h3 class="text-lg font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors line-clamp-1">{{ job.title }}</h3>
+                            <p class="text-sm font-semibold text-gray-500">{{ job.employer.employer_profile.company_name|default:job.employer.username }}</p>
+                        </div>
+                        {% if job.employer.employer_profile.logo %}
+                            <div class="h-10 w-10 rounded-full border border-gray-100 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
+                                <img src="{{ job.employer.employer_profile.logo.url }}" alt="{{ job.employer.employer_profile.company_name }}" class="h-full w-full object-contain">
+                            </div>
+                        {% else %}
+                            <div class="h-10 w-10 rounded-full border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-600 font-bold text-sm flex-shrink-0 shadow-sm">
+                                {{ job.employer.username|make_list|first|upper }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-2 mb-8">
+                        <span class="badge-light inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wide">
+                            {{ job.get_employment_type_display }}
+                        </span>
+                        <span class="badge-primary-light inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wide">
+                            {{ job.get_remote_status_display }}
+                        </span>
+                    </div>
+                    
+                    <div class="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
+                        <div class="flex items-center text-xs font-semibold text-gray-500">
+                            <svg class="h-3.5 w-3.5 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span class="truncate max-w-[120px]">{{ job.location|default:"Remote" }}</span>
+                        </div>
+                        {% if job.salary_min %}
+                            <div class="text-xs font-bold text-gray-900">
+                                {{ job.currency_symbol }}{{ job.salary_min|default_if_none:"" }}{% if job.salary_min > 1000 %}k{% endif %}
+                                {% if job.salary_max %} - {{ job.currency_symbol }}{{ job.salary_max|default_if_none:"" }}{% if job.salary_max > 1000 %}k{% endif %}{% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <div class="col-span-full py-20 text-center">
+                <p class="text-gray-500 font-medium">No active opportunities at the moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Cinematic Light CTA -->
+<div class="relative py-32 overflow-hidden border-t border-gray-200 bg-white">
+    <div class="absolute inset-0 bg-grid-light opacity-60 pointer-events-none"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl h-[400px] bg-blue-100 rounded-full blur-[100px] pointer-events-none opacity-50"></div>
+    
+    <div class="reveal-on-scroll max-w-4xl mx-auto px-4 relative z-10 text-center">
+        <h2 class="text-4xl sm:text-5xl font-black text-gray-900 mb-6 tracking-tight">Start building your future.</h2>
+        <p class="text-lg text-gray-600 mb-10 max-w-2xl mx-auto font-medium">
+            Join thousands of professionals already accelerating their careers. Create a free account to upload your resume and apply instantly.
+        </p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="{% url 'account_signup' %}" class="w-full sm:w-auto px-8 py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] text-center">
+                Create Free Account
+            </a>
+            <a href="{% url 'account_login' %}" class="w-full sm:w-auto px-8 py-4 bg-white text-gray-900 font-bold rounded-xl border border-gray-200 hover:bg-gray-50 transition shadow-sm text-center">
+                Sign In
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Script for Spotlight Hover Effect -->
+<script>
+    document.getElementById('cards-container').onmousemove = e => {
+        for(const card of document.getElementsByClassName('spotlight-card-light')) {
+            const rect = card.getBoundingClientRect(),
+                  x = e.clientX - rect.left,
+                  y = e.clientY - rect.top;
+            
+            card.style.setProperty('--mouse-x', `${x}px`);
+            card.style.setProperty('--mouse-y', `${y}px`);
+        }
+    }
+</script>
+<script>
+    // Stats Counting Animation
+    document.addEventListener("DOMContentLoaded", () => {
+        const counters = document.querySelectorAll('.stat-counter');
+        const speed = 200; // The lower the slower
+
+        const animateCounters = () => {
+            counters.forEach(counter => {
+                const updateCount = () => {
+                    const target = +counter.getAttribute('data-target');
+                    const count = +counter.innerText;
+                    const inc = target / speed;
+
+                    if (count < target) {
+                        counter.innerText = Math.ceil(count + inc);
+                        setTimeout(updateCount, 15);
+                    } else {
+                        counter.innerText = target;
+                    }
+                };
+                updateCount();
+            });
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    animateCounters();
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        const statsSection = document.getElementById('stats-section');
+        if(statsSection) {
+            observer.observe(statsSection);
+        }
+    });
+</script>
+{% endblock %}

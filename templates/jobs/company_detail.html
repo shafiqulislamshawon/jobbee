@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ company.company_name|default:company.user.username }} - {{ site_settings.site_name }}{% endblock %}
+
+{% block extra_head %}
+<meta property="og:title" content="{{ company.company_name|default:company.user.username }} Jobs & Careers" />
+<meta property="og:description" content="View open jobs, reviews, and company culture for {{ company.company_name|default:company.user.username }}." />
+<meta property="og:url" content="{{ request.build_absolute_uri }}" />
+<meta property="og:type" content="website" />
+{% if company.logo %}
+<meta property="og:image" content="{{ request.build_absolute_uri|slice:':-1' }}{{ company.logo.url }}" />
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <!-- Company Header -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+        <div class="h-48 bg-gray-900 w-full relative">
+            <!-- Optional banner image could go here -->
+        </div>
+        <div class="px-8 pb-8 relative">
+            <div class="flex flex-col sm:flex-row sm:items-end -mt-12 sm:-mt-16 mb-4 gap-4 sm:gap-6">
+                <div class="h-24 w-24 sm:h-32 sm:w-32 bg-white rounded-lg border-4 border-white shadow flex-shrink-0 flex items-center justify-center overflow-hidden">
+                    {% if company.logo %}
+                        <img src="{{ company.logo.url }}" alt="{{ company.company_name }}" class="h-full w-full object-contain p-2">
+                    {% else %}
+                        <span class="text-gray-400 font-bold text-4xl">{{ company.company_name|default:company.user.username|make_list|first|upper }}</span>
+                    {% endif %}
+                </div>
+                <div class="flex-1 pb-2">
+                    <h1 class="text-3xl font-extrabold text-primary">{{ company.company_name|default:company.user.username }}</h1>
+                    <div class="flex items-center mt-2 text-sm text-gray-500 gap-4">
+                        <span class="flex items-center text-yellow-500 font-bold">
+                            <svg class="h-5 w-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                            {{ avg_rating|floatformat:1 }} ({{ reviews.count }} reviews)
+                        </span>
+                    </div>
+                </div>
+                {% if request.user.is_seeker %}
+                <div class="pb-2">
+                    <a href="{% url 'add_review' company.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
+                        Write a Review
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="prose prose-sm max-w-none text-gray-700 mt-6">
+                {{ company.description|default:"No description provided yet."|linebreaks }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-8">
+            <!-- Open Jobs -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-xl font-bold text-primary mb-6">Open Jobs</h2>
+                <div class="space-y-4">
+                    {% for job in jobs %}
+                    <div class="border border-gray-100 rounded-lg p-4 hover:border-accent transition">
+                        <a href="{% url 'job_detail' job.id %}" class="block">
+                            <h3 class="font-bold text-lg text-accent">{{ job.title }}</h3>
+                            <div class="flex items-center gap-4 text-sm text-gray-500 mt-2">
+                                <span>{{ job.location|default:"Remote" }}</span>
+                                <span>{{ job.get_employment_type_display }}</span>
+                            </div>
+                        </a>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 text-sm">No open positions currently available.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Reviews -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-xl font-bold text-primary mb-6">Reviews</h2>
+                <div class="space-y-6">
+                    {% for review in reviews %}
+                    <div class="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="flex text-yellow-500">
+                                {% for i in "12345"|make_list %}
+                                    <svg class="h-4 w-4 {% if forloop.counter <= review.rating %}text-yellow-500{% else %}text-gray-300{% endif %}" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                {% endfor %}
+                            </div>
+                            <span class="font-bold text-sm text-gray-900">{{ review.title }}</span>
+                        </div>
+                        <p class="text-sm text-gray-700">{{ review.body|linebreaksbr }}</p>
+                        <p class="text-xs text-gray-500 mt-2">By {{ review.reviewer.username }} on {{ review.created_at|date:"M d, Y" }}</p>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 text-sm">No reviews yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-8">
+            {% if company.photos.exists %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-bold text-primary mb-4">Photos</h2>
+                <div class="grid grid-cols-2 gap-2">
+                    {% for photo in company.photos.all %}
+                        <img src="{{ photo.image.url }}" alt="Company photo" class="w-full h-24 object-cover rounded">
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
