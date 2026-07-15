@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout - {{ plan.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Complete Your Purchase</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Plan: {{ plan.name }}</h5>
+                    <p class="card-text">Price: $ {{ plan.price }}</p>
+                    <hr>
+                    
+                    <div class="mb-4 space-y-4">
+                        <label class="d-flex align-items-center p-3 border rounded cursor-pointer mb-2">
+                            <input type="radio" name="payment_method" value="card" checked class="form-check-input me-2">
+                            <div>
+                                <span class="d-block fw-bold">Credit / Debit Card (Mock)</span>
+                                <span class="text-muted small">Instant activation</span>
+                            </div>
+                        </label>
+                        
+                        <label class="d-flex align-items-center p-3 border rounded cursor-pointer">
+                            <input type="radio" name="payment_method" value="wallet" class="form-check-input me-2" onchange="document.getElementById('use_wallet').value = this.checked ? 'true' : 'false'">
+                            <div>
+                                <span class="d-block fw-bold">Wallet Balance ($ {{ request.user.employer_profile.credits }})</span>
+                                <span class="small">
+                                    {% if request.user.employer_profile.credits >= plan.price %}
+                                        <span class="text-success">Sufficient balance</span>
+                                    {% else %}
+                                        <span class="text-danger">Insufficient balance</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <form method="POST" action="{% url 'subscriptions:process_checkout' plan.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="use_wallet" id="use_wallet" value="false">
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">Confirm Purchase</button>
+                            <a href="{% url 'subscriptions:pricing' %}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

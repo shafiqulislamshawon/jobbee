@@ -1,4 +1,4 @@
-{% load static %}
+{% load static i18n %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -80,6 +80,16 @@
             'cookie_flags': 'SameSite=None;Secure'
         });
     </script>
+    <script>
+        // Set Timezone for Django backend
+        if (typeof Intl !== 'undefined' && typeof Intl.DateTimeFormat !== 'undefined') {
+            var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            if (tz && document.cookie.indexOf('django_timezone') === -1) {
+                document.cookie = 'django_timezone=' + tz + '; path=/';
+                window.location.reload();
+            }
+        }
+    </script>
 </head>
 <body class="min-h-screen flex flex-col antialiased">
 
@@ -93,18 +103,46 @@
                             <img src="{% static 'logo.png' %}?v=2" alt="Jobbee" class="h-8 w-auto object-contain">
                         </a>
                     </div>
-                    <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
-                        <a href="{% url 'job_list' %}" class="border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Find Jobs</a>
-                        <a href="{% url 'post_list' %}" class="border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Blog</a>
+                    <div class="hidden sm:ml-8 sm:flex sm:space-x-8 items-center">
+                        <a href="{% url 'job_list' %}" class="border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">{% trans "Find Jobs" %}</a>
+                        <a href="{% url 'post_list' %}" class="border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">{% trans "Blog" %}</a>
+                        
+                        <form action="{% url 'set_language' %}" method="post" class="ml-4 flex items-center">
+                            {% csrf_token %}
+                            <input name="next" type="hidden" value="{{ redirect_to }}">
+                            <select name="language" onchange="this.form.submit()" class="text-sm bg-transparent border-gray-300 rounded-md py-1 pl-2 pr-6 focus:ring-accent focus:border-accent">
+                                {% get_current_language as LANGUAGE_CODE %}
+                                {% get_available_languages as LANGUAGES %}
+                                {% for language in LANGUAGES %}
+                                    <option value="{{ language.0 }}" {% if language.0 == LANGUAGE_CODE %}selected{% endif %}>
+                                        {{ language.1 }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </form>
                     </div>
                 </div>
                 <div class="hidden sm:ml-6 sm:flex sm:items-center space-x-6">
                     {% if user.is_authenticated %}
+                        <!-- Notifications -->
+                        <a href="{% url 'notifications' %}" class="relative p-1 rounded-full text-gray-400 hover:text-gray-600 focus:outline-none transition" title="Notifications">
+                            <span class="sr-only">View notifications</span>
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            <span id="notif-badge" class="hidden absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
+                        </a>
                         {% if user.is_employer %}
                             <a href="{% url 'dashboard' %}" class="text-gray-600 hover:text-gray-900 text-sm font-medium">Employer Dashboard</a>
+                            <a href="{% url 'referrals' %}" class="text-gray-600 hover:text-accent text-sm font-medium flex items-center gap-1">
+                                Referrals <span class="bg-blue-100 text-blue-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold">Beta</span>
+                            </a>
                             <a href="#" class="bg-primary text-white hover:bg-gray-800 px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">Post a Job</a>
                         {% elif user.is_seeker %}
                             <a href="{% url 'dashboard' %}" class="text-gray-600 hover:text-gray-900 text-sm font-medium">My Profile</a>
+                            <a href="{% url 'referrals' %}" class="text-gray-600 hover:text-accent text-sm font-medium flex items-center gap-1">
+                                Referrals <span class="bg-blue-100 text-blue-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold">Beta</span>
+                            </a>
                         {% else %}
                             <a href="{% url 'frontend_admin' %}" class="text-gray-600 hover:text-gray-900 text-sm font-medium">Admin</a>
                         {% endif %}
@@ -141,7 +179,8 @@
                 <div class="space-y-1">
                     {% if user.is_authenticated %}
                         {% if user.is_employer %}
-                            <a href="{% url 'dashboard' %}" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition">Employer Dashboard</a>
+                            <a href="{% url 'dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-accent">Dashboard</a>
+                            <a href="{% url 'referrals' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-accent">Referrals</a>
                             <a href="#" class="block px-4 py-2 text-base font-medium text-accent hover:text-accent-dark hover:bg-gray-100 transition">Post a Job</a>
                         {% elif user.is_seeker %}
                             <a href="{% url 'dashboard' %}" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition">My Profile</a>
@@ -308,5 +347,20 @@
 
         });
     </script>
+    {% if user.is_authenticated %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('{% url "get_unread_count" %}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.count > 0) {
+                        const badge = document.getElementById('notif-badge');
+                        if(badge) badge.classList.remove('hidden');
+                    }
+                })
+                .catch(err => console.error("Could not fetch notifications", err));
+        });
+    </script>
+    {% endif %}
 </body>
 </html>

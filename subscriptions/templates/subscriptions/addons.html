@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Add-ons Store{% endblock %}
+
+{% block extra_head %}
+<style>
+    .glass-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] bg-gray-50 py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16 reveal-on-scroll">
+            <h1 class="text-4xl md:text-5xl font-black text-gray-900 mb-4 tracking-tight">Add-ons Store</h1>
+            <p class="text-lg text-gray-500 max-w-2xl mx-auto font-medium">Turbocharge your recruitment process with on-demand power-ups. No plan upgrade required.</p>
+        </div>
+
+        <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {% for addon in addons %}
+            <div class="glass-card rounded-2xl p-6 flex flex-col hover:-translate-y-1 transition-transform duration-300 reveal-on-scroll delay-100">
+                <div class="mb-4">
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">{{ addon.name }}</h3>
+                    <p class="text-sm text-gray-500 line-clamp-3">{{ addon.description }}</p>
+                </div>
+                
+                <div class="mt-auto pt-6">
+                    <div class="flex items-end gap-1 mb-4">
+                        <span class="text-3xl font-black text-blue-600">$ {{ addon.price|floatformat:0 }}</span>
+                    </div>
+                    
+                    <a href="{% url 'subscriptions:checkout_addon' addon.id %}" class="w-full inline-flex justify-center items-center px-4 py-3 border border-transparent text-sm font-bold rounded-xl text-white bg-gray-900 hover:bg-blue-600 shadow-sm transition-colors">
+                        Purchase Now
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

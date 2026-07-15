@@ -59,9 +59,31 @@
         <div class="flex items-start justify-between">
             <div>
                 <h1 class="text-3xl font-extrabold text-primary mb-2">{{ job.title }}</h1>
-                <a href="{% url 'company_detail' job.employer.employer_profile.id %}" class="text-lg font-medium text-accent hover:underline mb-6 block">
+                <a href="{% url 'company_detail' job.employer.employer_profile.id %}" class="text-lg font-medium text-accent hover:underline mb-6 flex items-center w-fit">
                     {{ job.employer.employer_profile.company_name|default:job.employer.username }}
+                    {% if job.employer.employer_profile.is_verified %}
+                    <svg class="h-5 w-5 text-blue-500 ml-1" fill="currentColor" viewBox="0 0 20 20" title="Verified Employer">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    {% endif %}
                 </a>
+
+                {% if job.employer.employer_profile.is_verified %}
+                <div class="mt-2 flex items-center bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-xs font-medium w-fit">
+                    <svg class="h-4 w-4 mr-1.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    Verified Employer
+                </div>
+                {% endif %}
+
+                <div class="mt-4 mb-6 flex items-center bg-gray-50 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 max-w-xs">
+                    <span class="mr-2">Reputation:</span>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 max-w-[100px]">
+                        <div class="bg-accent h-2.5 rounded-full" style="width: {{ job.employer.employer_profile.reputation_score }}%"></div>
+                    </div>
+                    <span class="ml-2 font-bold">{{ job.employer.employer_profile.reputation_score }}/100</span>
+                </div>
                 
                 <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-6">
                     <span class="flex items-center">

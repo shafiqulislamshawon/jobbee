@@ -1,159 +1,173 @@
 import random
+import uuid
+from datetime import timedelta
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from datetime import timedelta
+from django.contrib.auth.hashers import make_password
+from django.db import transaction
+
 from accounts.models import User, EmployerProfile, SeekerProfile
 from jobs.models import Job, Application, JobEngagement
 from blog.models import Category, Post
+from subscriptions.models import Plan, EmployerSubscription
+from subscriptions.management.commands.seed_addons import Command as SeedAddonsCommand
+
+# Data arrays for realistic multi-country/currency setups
+COUNTRIES = ['US', 'GB', 'CA', 'AU', 'DE', 'FR', 'IN', 'JP', 'BR', 'ZA']
+CURRENCIES = ['USD', 'GBP', 'CAD', 'AUD', 'EUR', 'EUR', 'INR', 'JPY', 'BRL', 'ZAR']
+
+JOB_TITLES = [
+    "Senior Software Engineer", "Product Manager", "UX Designer", 
+    "Data Scientist", "Marketing Director", "Sales Executive",
+    "DevOps Engineer", "Cloud Architect", "HR Business Partner",
+    "Financial Analyst", "Operations Manager", "Customer Success Specialist"
+]
+
+EMPLOYER_NAMES = [
+    "Acme Corp", "TechNova", "Global Dynamics", "Stark Industries",
+    "Wayne Enterprises", "Umbrella Corp", "Cyberdyne Systems",
+    "Massive Dynamic", "Initech", "Hooli", "Pied Piper", "Aviato"
+]
 
 class Command(BaseCommand):
-    help = 'Seeds the database with test data for Jobbee'
+    help = 'Seeds massive realistic data for Jobbee'
 
     def handle(self, *args, **kwargs):
-        self.stdout.write("Starting database seeding...")
+        self.stdout.write("Starting massive seeding...")
 
-        # Clear existing data (optional, but good for fresh seeds)
-        # We will not delete superusers, only regular users created by this script or previous runs
-        User.objects.filter(is_superuser=False).delete()
-        Job.objects.all().delete()
-        JobEngagement.objects.all().delete()
-        Category.objects.all().delete()
-        Post.objects.all().delete()
+        # 1. Base Setup
+        if not User.objects.filter(username='admin').exists():
+            User.objects.create_superuser('admin', 'admin@example.com', 'admin')
 
-        # 1. Create Employers
-        employers_data = [
-            {"email": "tech@google.com", "name": "Google", "industry": "Technology"},
-            {"email": "careers@amazon.com", "name": "Amazon", "industry": "E-Commerce"},
-            {"email": "hr@stripe.com", "name": "Stripe", "industry": "FinTech"},
-            {"email": "jobs@airbnb.com", "name": "Airbnb", "industry": "Hospitality"},
-            {"email": "hello@openai.com", "name": "OpenAI", "industry": "Artificial Intelligence"},
-        ]
+        # 2. Addons & Plans
+        SeedAddonsCommand().handle()
         
-        employers = []
-        for data in employers_data:
-            user = User.objects.create_user(
-                username=data["email"].split('@')[0],
-                email=data["email"],
-                password="password123",
+        plan1, _ = Plan.objects.get_or_create(name='Starter', defaults={'price': 49.00, 'job_limit': 1, 'duration_days': 30})
+        plan2, _ = Plan.objects.get_or_create(name='Business', defaults={'price': 149.00, 'job_limit': 5, 'duration_days': 30, 'has_banner': True})
+        plan3, _ = Plan.objects.get_or_create(name='Enterprise', defaults={'price': 499.00, 'job_limit': -1, 'duration_days': 30, 'has_banner': True, 'can_feature_jobs': True, 'has_verification_badge': True})
+        plans = [plan1, plan2, plan3]
+
+        # 3. Create Employers (1000)
+        self.stdout.write("Generating Employers...")
+        employer_users = []
+        employer_profiles = []
+        pw = make_password("password123")
+        
+        for i in range(1000):
+            emp_name = f"{random.choice(EMPLOYER_NAMES)} {i}"
+            user = User(
+                username=f"employer{i}",
+                email=f"employer{i}@example.com",
+                password=pw,
                 is_employer=True
             )
-            # Create Employer Profile
-            EmployerProfile.objects.create(
-                user=user,
-                company_name=data["name"],
-                description=f"{data['name']} is a leading company in the {data['industry']} sector."
-            )
-            employers.append(user)
-            self.stdout.write(f"Created employer: {data['name']}")
-
-        # 2. Create Seekers
-        seekers = []
-        genders = ['M', 'F', 'O', 'P']
-        ages = ['18-24', '25-34', '35-44', '45-54', '55+']
+            employer_users.append(user)
+            
+        User.objects.bulk_create(employer_users, batch_size=500)
+        employer_users = list(User.objects.filter(is_employer=True, is_superuser=False))
         
-        for i in range(1, 16):
-            user = User.objects.create_user(
+        for user in employer_users:
+            employer_profiles.append(EmployerProfile(
+                user=user,
+                company_name=f"Company {user.id}",
+                industry=random.choice(["Tech", "Finance", "Healthcare", "Retail"]),
+                company_size=random.choice(['1-10', '11-50', '51-200', '201-500', '500+']),
+                is_verified=random.choice([True, False])
+            ))
+        EmployerProfile.objects.bulk_create(employer_profiles, batch_size=500)
+        
+        # Assign plans
+        employer_profiles = list(EmployerProfile.objects.all())
+        subs = []
+        for profile in employer_profiles:
+            subs.append(EmployerSubscription(
+                employer=profile,
+                plan=random.choice(plans),
+                end_date=timezone.now() + timedelta(days=30),
+                status='ACTIVE'
+            ))
+        EmployerSubscription.objects.bulk_create(subs, batch_size=500)
+
+        # 4. Create Seekers (10000)
+        self.stdout.write("Generating Seekers...")
+        seeker_users = []
+        seeker_profiles = []
+        for i in range(10000):
+            user = User(
                 username=f"seeker{i}",
                 email=f"seeker{i}@example.com",
-                password="password123",
-                first_name=f"John{i}",
-                last_name=f"Doe{i}",
+                password=pw,
+                first_name=f"First{i}",
+                last_name=f"Last{i}",
                 is_seeker=True
             )
-            SeekerProfile.objects.create(
-                user=user,
-                skills="Python, Django, JavaScript, React",
-                gender=random.choice(genders),
-                age_group=random.choice(ages)
-            )
-            seekers.append(user)
-        self.stdout.write(f"Created {len(seekers)} job seekers.")
-
-        # 3. Create Jobs
-        job_titles = [
-            "Senior Python Developer", "Frontend Engineer", "Full Stack Developer",
-            "Data Scientist", "Machine Learning Engineer", "DevOps Specialist",
-            "Product Manager", "UX/UI Designer", "Backend Architect", "Systems Administrator"
-        ]
-        employment_types = ['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP']
-        remote_statuses = ['REMOTE', 'HYBRID', 'ON_SITE']
-        locations = ["New York, NY", "San Francisco, CA", "London, UK", "Berlin, Germany", "Austin, TX"]
-
-        jobs = []
-        for _ in range(25):
-            employer = random.choice(employers)
-            job = Job.objects.create(
-                employer=employer,
-                title=random.choice(job_titles),
-                description="We are looking for a highly skilled professional to join our dynamic team.",
-                responsibilities="- Write clean, maintainable code\n- Collaborate with cross-functional teams",
-                requirements="- 3+ years of experience\n- Strong problem-solving skills",
-                salary_min=random.randint(60000, 90000),
-                salary_max=random.randint(100000, 180000),
-                employment_type=random.choice(employment_types),
-                remote_status=random.choice(remote_statuses),
-                location=random.choice(locations),
-                skills="Python, React, AWS",
-                is_active=random.choice([True, True, True, False]), # 75% active
-                created_at=timezone.now() - timedelta(days=random.randint(0, 30))
-            )
-            # Update created_at (auto_now_add makes it tricky, so we update it post-creation if needed, but for Django 1.8+ it respects the value if provided sometimes, or we can use .update())
-            Job.objects.filter(id=job.id).update(created_at=timezone.now() - timedelta(days=random.randint(0, 30)))
-            jobs.append(job)
-        self.stdout.write(f"Created {len(jobs)} jobs.")
-
-        # 4. Create Applications and Engagements
-        status_choices = ['PENDING', 'REVIEWED', 'SHORTLISTED', 'INTERVIEW', 'OFFER', 'REJECTED']
+            seeker_users.append(user)
+            
+        User.objects.bulk_create(seeker_users, batch_size=2000)
+        seeker_users = list(User.objects.filter(is_seeker=True))
         
-        for job in jobs:
-            # Random number of applicants for each job
-            num_applicants = random.randint(0, 8)
-            applicants_for_job = random.sample(seekers, num_applicants)
-            
-            views_count = 0
-            
-            for applicant in applicants_for_job:
-                Application.objects.create(
-                    job=job,
-                    applicant=applicant,
-                    cover_letter="I am very interested in this position and believe I am a great fit.",
-                    status=random.choice(status_choices),
-                    applied_at=timezone.now() - timedelta(days=random.randint(0, 10))
-                )
-                JobEngagement.objects.create(job=job, user=applicant, action_type='VIEW')
-                JobEngagement.objects.create(job=job, user=applicant, action_type='CLICK')
-                views_count += 1
-                
-            # Random extra views
-            extra_views = random.randint(5, 25)
-            for _ in range(extra_views):
-                viewer = random.choice([random.choice(seekers), None])
-                JobEngagement.objects.create(job=job, user=viewer, action_type='VIEW')
-                if random.random() > 0.7:
-                    JobEngagement.objects.create(job=job, user=viewer, action_type='CLICK')
-                views_count += 1
-                
-            Job.objects.filter(id=job.id).update(views_count=views_count)
-            
-        self.stdout.write("Created job applications and analytics data.")
+        for user in seeker_users:
+            seeker_profiles.append(SeekerProfile(
+                user=user,
+                skills=random.choice(["Python, Django", "React, Node", "Sales, Marketing", "Design, Figma"]),
+                gender=random.choice(['M', 'F', 'O', 'P']),
+                age_group=random.choice(['18-24', '25-34', '35-44', '45-54', '55+']),
+                location=random.choice(COUNTRIES)
+            ))
+        SeekerProfile.objects.bulk_create(seeker_profiles, batch_size=2000)
 
-        # 5. Create Blog Data
-        categories = ["Tech Trends", "Career Advice", "Company News", "Interviews"]
-        cat_objs = []
-        for c in categories:
-            cat, _ = Category.objects.get_or_create(name=c, slug=c.lower().replace(" ", "-"))
-            cat_objs.append(cat)
+        # 5. Create Jobs (50000)
+        self.stdout.write("Generating 50,000 Jobs...")
+        jobs = []
+        now = timezone.now()
+        emp_list = list(User.objects.filter(is_employer=True))
+        
+        for i in range(50000):
+            idx = random.randint(0, 9)
+            jobs.append(Job(
+                employer=random.choice(emp_list),
+                title=f"{random.choice(JOB_TITLES)} - {i}",
+                description="This is a realistic job description for a high-quality position.",
+                responsibilities="Lead projects, write code, mentor juniors.",
+                requirements="5+ years experience, BS in CS, strong communication.",
+                currency=CURRENCIES[idx],
+                salary_min=random.randint(40000, 80000),
+                salary_max=random.randint(90000, 200000),
+                employment_type=random.choice(['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP']),
+                remote_status=random.choice(['REMOTE', 'HYBRID', 'ON_SITE']),
+                location=COUNTRIES[idx],
+                skills="Python, React, AWS",
+                is_active=random.choice([True, True, False]),
+                views_count=random.randint(0, 100),
+                is_featured=random.choice([True, False, False, False]),
+                created_at=now - timedelta(days=random.randint(0, 30))
+            ))
             
-        for i in range(10):
-            Post.objects.create(
-                title=f"Blog Post Title {i}",
-                slug=f"blog-post-title-{i}",
-                author=random.choice(employers), # Using employer as author for simplicity
-                category=random.choice(cat_objs),
-                content="This is a fantastic blog post about industry insights and career growth...",
+            if len(jobs) == 5000:
+                Job.objects.bulk_create(jobs)
+                self.stdout.write(f"Inserted {i+1} jobs...")
+                jobs = []
+        
+        if jobs:
+            Job.objects.bulk_create(jobs)
+
+        # 6. Blog Posts (500)
+        self.stdout.write("Generating Blog Posts...")
+        cat1, _ = Category.objects.get_or_create(name="Tech", slug="tech")
+        cat2, _ = Category.objects.get_or_create(name="Career", slug="career")
+        cats = [cat1, cat2]
+        
+        posts = []
+        for i in range(500):
+            posts.append(Post(
+                title=f"Blog Post {i} - International Tech Trends",
+                slug=f"blog-post-{i}-{uuid.uuid4().hex[:6]}",
+                author=random.choice(emp_list),
+                category=random.choice(cats),
+                content="This is a detailed analysis of the global job market across multiple timezones and currencies.",
                 status='published',
-                created_at=timezone.now() - timedelta(days=random.randint(0, 60))
-            )
-        self.stdout.write("Created blog posts.")
+                created_at=now - timedelta(days=random.randint(0, 100))
+            ))
+        Post.objects.bulk_create(posts, batch_size=250)
 
         self.stdout.write(self.style.SUCCESS("Database seeding completed successfully!"))

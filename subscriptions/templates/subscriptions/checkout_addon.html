@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout - {{ addon.name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] bg-gray-50 py-16">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden reveal-on-scroll">
+            <div class="p-8 border-b border-gray-100">
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">Checkout summary</h1>
+                <p class="text-gray-500">You are about to purchase an add-on for your account.</p>
+            </div>
+            
+            <div class="p-8 bg-gray-50/50">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">{{ addon.name }}</h3>
+                        <p class="text-sm text-gray-500">{{ addon.description }}</p>
+                    </div>
+                    <span class="text-xl font-black text-gray-900">$ {{ addon.price|floatformat:0 }}</span>
+                </div>
+                
+                <hr class="border-gray-200 mb-6">
+                
+                <div class="flex justify-between items-center text-lg font-bold text-gray-900 mb-8">
+                    <span>Total due today</span>
+                    <span>$ {{ addon.price|floatformat:0 }}</span>
+                </div>
+                
+                <div class="mb-8 space-y-4">
+                    <label class="flex items-center p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition border-blue-500 bg-blue-50 relative">
+                        <input type="radio" name="payment_method" value="card" checked class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500" onchange="document.getElementById('use_wallet').value='false'">
+                        <div class="ml-3">
+                            <span class="block text-sm font-bold text-gray-900">Credit / Debit Card (Mock)</span>
+                            <span class="block text-xs text-gray-500">Instant activation</span>
+                        </div>
+                    </label>
+                    
+                    <label class="flex items-center p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition border-gray-200">
+                        <input type="radio" name="payment_method" value="wallet" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500" onchange="document.getElementById('use_wallet').value='true'">
+                        <div class="ml-3">
+                            <span class="block text-sm font-bold text-gray-900">Wallet Balance ($ {{ request.user.employer_profile.credits }})</span>
+                            <span class="block text-xs text-gray-500">
+                                {% if request.user.employer_profile.credits >= addon.price %}
+                                    <span class="text-green-600">Sufficient balance</span>
+                                {% else %}
+                                    <span class="text-red-500">Insufficient balance</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </label>
+                </div>
+                
+                <form action="{% url 'subscriptions:process_addon_checkout' addon.id %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="use_wallet" id="use_wallet" value="false">
+                    <button type="submit" class="w-full inline-flex justify-center items-center px-6 py-4 border border-transparent text-base font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Confirm Purchase & Activate
+                    </button>
+                    <a href="{% url 'subscriptions:addons_store' %}" class="mt-4 w-full inline-flex justify-center items-center px-6 py-4 border border-gray-300 text-base font-bold rounded-xl text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Cancel
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

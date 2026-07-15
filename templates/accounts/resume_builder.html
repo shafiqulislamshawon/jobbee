@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Resume Builder - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div class="md:flex md:items-center md:justify-between mb-8">
+        <div class="flex-1 min-w-0">
+            <h2 class="text-2xl font-bold leading-7 text-primary sm:text-3xl sm:truncate">
+                Resume Builder
+            </h2>
+            <p class="mt-1 text-sm text-gray-500">
+                Preview your auto-generated professional resume based on your profile.
+            </p>
+        </div>
+        <div class="mt-4 flex md:mt-0 md:ml-4 gap-3">
+            <a href="{% url 'edit_profile' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition">
+                Edit Profile
+            </a>
+            <a href="{% url 'export_resume_pdf' %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition">
+                <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download PDF
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-white shadow-lg sm:rounded-lg overflow-hidden border border-gray-200">
+        <div class="p-8 md:p-12">
+            <!-- Header Section -->
+            <div class="text-center mb-10 border-b border-gray-200 pb-8">
+                <h1 class="text-4xl font-black text-gray-900 mb-2 uppercase tracking-wider">{{ request.user.first_name|default:request.user.username }} {{ request.user.last_name }}</h1>
+                <div class="text-gray-600 text-sm flex items-center justify-center gap-4 flex-wrap">
+                    <span>{{ request.user.email }}</span>
+                    {% if profile.portfolio_url %}
+                    <span>&bull;</span>
+                    <a href="{{ profile.portfolio_url }}" target="_blank" class="text-accent hover:underline">{{ profile.portfolio_url }}</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Experience -->
+            {% if profile.experience.exists %}
+            <div class="mb-10">
+                <h3 class="text-lg font-bold text-gray-900 uppercase tracking-widest border-b-2 border-gray-900 pb-2 mb-4">Experience</h3>
+                <div class="space-y-6">
+                    {% for exp in profile.experience.all|dictsortreversed:"start_date" %}
+                    <div>
+                        <div class="flex justify-between items-baseline mb-1">
+                            <h4 class="font-bold text-gray-900">{{ exp.job_title }}</h4>
+                            <span class="text-sm font-medium text-gray-500 shrink-0">{{ exp.start_date|date:"M Y" }} - {% if exp.is_current %}Present{% else %}{{ exp.end_date|date:"M Y" }}{% endif %}</span>
+                        </div>
+                        <p class="text-gray-700 font-medium text-sm mb-2">{{ exp.company }}</p>
+                        {% if exp.description %}
+                        <p class="text-gray-600 text-sm">{{ exp.description|linebreaksbr }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Education -->
+            {% if profile.education.exists %}
+            <div class="mb-10">
+                <h3 class="text-lg font-bold text-gray-900 uppercase tracking-widest border-b-2 border-gray-900 pb-2 mb-4">Education</h3>
+                <div class="space-y-6">
+                    {% for edu in profile.education.all|dictsortreversed:"start_date" %}
+                    <div>
+                        <div class="flex justify-between items-baseline mb-1">
+                            <h4 class="font-bold text-gray-900">{{ edu.degree }}{% if edu.field_of_study %} in {{ edu.field_of_study }}{% endif %}</h4>
+                            <span class="text-sm font-medium text-gray-500 shrink-0">{{ edu.start_date|date:"Y" }} - {% if edu.end_date %}{{ edu.end_date|date:"Y" }}{% else %}Present{% endif %}</span>
+                        </div>
+                        <p class="text-gray-700 font-medium text-sm mb-2">{{ edu.institution }}</p>
+                        {% if edu.description %}
+                        <p class="text-gray-600 text-sm">{{ edu.description|linebreaksbr }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Skills -->
+            {% if profile.skills %}
+            <div class="mb-10">
+                <h3 class="text-lg font-bold text-gray-900 uppercase tracking-widest border-b-2 border-gray-900 pb-2 mb-4">Skills</h3>
+                <p class="text-gray-700 leading-relaxed">{{ profile.skills }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Certifications -->
+            {% if profile.certifications.exists %}
+            <div>
+                <h3 class="text-lg font-bold text-gray-900 uppercase tracking-widest border-b-2 border-gray-900 pb-2 mb-4">Certifications</h3>
+                <div class="space-y-4">
+                    {% for cert in profile.certifications.all|dictsortreversed:"issue_date" %}
+                    <div class="flex justify-between items-baseline">
+                        <div>
+                            <h4 class="font-bold text-gray-900">{{ cert.name }}</h4>
+                            <p class="text-gray-600 text-sm">{{ cert.issuer }}</p>
+                        </div>
+                        <span class="text-sm font-medium text-gray-500 shrink-0">{{ cert.issue_date|date:"Y" }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}

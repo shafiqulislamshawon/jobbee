@@ -56,20 +56,42 @@
                     <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 cursor-grab active:cursor-grabbing hover:border-accent transition group kanban-card" data-id="{{ app.id }}" draggable="true">
                         <div class="flex items-start justify-between mb-2">
                             <h4 class="font-bold text-gray-900 text-sm">{{ app.applicant.first_name|default:app.applicant.username }} {{ app.applicant.last_name }}</h4>
-                            {% if app.applicant.seeker_profile.resume %}
-                            <a href="{{ app.applicant.seeker_profile.resume.url }}" target="_blank" class="text-xs text-accent hover:underline opacity-0 group-hover:opacity-100 transition" title="View Resume">
-                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                                </svg>
-                            </a>
-                            {% endif %}
+                            <div class="flex items-center gap-2">
+                                {% if has_advanced_matching and app.match_score is not None %}
+                                <span class="bg-green-100 text-green-800 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm" title="Match Score">{{ app.match_score }}%</span>
+                                {% endif %}
+                                {% if app.applicant.seeker_profile.resume %}
+                                <a href="{{ app.applicant.seeker_profile.resume.url }}" target="_blank" class="text-xs text-accent hover:underline opacity-0 group-hover:opacity-100 transition" title="View Resume">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                    </svg>
+                                </a>
+                                {% endif %}
+                            </div>
                         </div>
-                        <p class="text-xs text-gray-500 mb-3 truncate">{{ app.applicant.email }}</p>
+                        <p class="text-xs text-gray-500 mb-2 truncate">{{ app.applicant.email }}</p>
                         
-                        <div class="text-xs text-gray-400 flex items-center justify-between mt-4 pt-3 border-t border-gray-50">
+                        {% if app.applicant.assessment_results.all %}
+                        <div class="mb-3 space-y-1">
+                            {% for result in app.applicant.assessment_results.all %}
+                            <div class="flex items-center justify-between text-[10px] bg-gray-50 px-2 py-1 rounded">
+                                <span class="text-gray-600 font-medium truncate">{{ result.assessment.name }}</span>
+                                <span class="font-bold {% if result.score >= 80 %}text-green-600{% elif result.score >= 70 %}text-yellow-600{% else %}text-red-600{% endif %}">{{ result.score }}%</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="text-xs text-gray-400 flex items-center justify-between mt-2 pt-3 border-t border-gray-50">
                             <span>Applied {{ app.applied_at|date:"M d" }}</span>
-                            <!-- View Full Profile Button -->
-                            <a href="{% url 'applicant_profile' app.applicant.id %}" target="_blank" class="text-accent hover:text-blue-700 font-medium">View Profile</a>
+                            <div class="flex items-center gap-3">
+                                <button onclick="saveCandidate({{ app.applicant.id }}, this)" class="text-gray-400 hover:text-green-600 transition group-hover:text-gray-600" title="Save to Talent Pool">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                    </svg>
+                                </button>
+                                <a href="{% url 'applicant_profile' app.applicant.id %}" target="_blank" class="text-accent hover:text-blue-700 font-medium">View Profile</a>
+                            </div>
                         </div>
                     </div>
                     {% endfor %}
@@ -136,6 +158,21 @@
                         <h4 class="font-bold text-gray-900 mb-4">Age Demographics</h4>
                         <div class="relative h-64">
                             <canvas id="ageChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Timeline -->
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm col-span-1 md:col-span-2">
+                        <h4 class="font-bold text-gray-900 mb-4">Views vs Applications (Last 7 Days)</h4>
+                        <div class="relative h-64">
+                            <canvas id="timelineChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Location -->
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm col-span-1 md:col-span-2">
+                        <h4 class="font-bold text-gray-900 mb-4">Top Applicant Locations</h4>
+                        <div class="relative h-64">
+                            <canvas id="locationChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -221,6 +258,30 @@
         });
     }
 
+    function saveCandidate(seekerId, btn) {
+        fetch(`/candidates/${seekerId}/save/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const svg = btn.querySelector('svg');
+                svg.classList.add('text-green-600', 'fill-current');
+                btn.title = "Saved to Talent Pool";
+                if(data.created) {
+                    alert("Candidate saved to your Talent Pool!");
+                } else {
+                    alert("Candidate is already in your Talent Pool.");
+                }
+            } else {
+                alert("Could not save candidate.");
+            }
+        });
+    }
+
     // Analytics Charting Logic
     const analyticsData = JSON.parse('{{ analytics|escapejs }}');
     
@@ -264,6 +325,57 @@
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        }
+    });
+
+    new Chart(document.getElementById('timelineChart'), {
+        type: 'line',
+        data: {
+            labels: analyticsData.timeline_labels,
+            datasets: [
+                {
+                    label: 'Views',
+                    data: analyticsData.views_timeline,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'Applications',
+                    data: analyticsData.applications_timeline,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+            plugins: { legend: { position: 'top' } }
+        }
+    });
+
+    new Chart(document.getElementById('locationChart'), {
+        type: 'bar',
+        data: {
+            labels: analyticsData.location_labels,
+            datasets: [{
+                label: 'Applicants',
+                data: analyticsData.location_data,
+                backgroundColor: '#8b5cf6',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }
         }
     });
 </script>

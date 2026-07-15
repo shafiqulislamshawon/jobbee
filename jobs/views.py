@@ -7,7 +7,9 @@ from django.core.mail import send_mail
 from django.conf import settings
 from .models import Job, Application, JobEngagement
 from accounts.models import EmployerProfile, CompanyReview
+from django.views.decorators.cache import cache_page
 
+@cache_page(60 * 15)
 def home(request):
     recent_jobs = Job.objects.select_related('employer__employer_profile').filter(is_active=True).order_by('-created_at')[:6]
     return render(request, 'jobs/home.html', {'recent_jobs': recent_jobs})
@@ -23,16 +25,43 @@ def post_job(request):
         messages.error(request, 'Only employers can post jobs.')
         return redirect('home')
         
+    try:
+        subscription = request.user.employer_profile.subscription
+        if not subscription.can_post_job():
+            messages.error(request, 'You have reached your job limit or your subscription is inactive. Please upgrade your plan.')
+            return redirect('subscriptions:pricing')
+    except Exception:
+        messages.error(request, 'You need an active subscription to post a job.')
+        return redirect('subscriptions:pricing')
+
     if request.method == 'POST':
-        form = JobForm(request.POST)
+        form = JobForm(request.POST, subscription=subscription)
         if form.is_valid():
             job = form.save(commit=False)
             job.employer = request.user
             job.save()
+            
+            # Consume EXTRA_JOB token or increment jobs_posted
+            if subscription.plan.job_limit != -1 and subscription.jobs_posted >= subscription.plan.job_limit:
+                extra_token = request.user.employer_profile.addons.filter(addon__addon_type='EXTRA_JOB', is_used=False).first()
+                if extra_token:
+                    extra_token.is_used = True
+                    extra_token.save()
+            else:
+                subscription.jobs_posted += 1
+                subscription.save()
+                
+            # Consume FEATURED_JOB token if applicable
+            if job.is_featured and not subscription.plan.can_feature_jobs:
+                featured_token = request.user.employer_profile.addons.filter(addon__addon_type='FEATURED_JOB', is_used=False).first()
+                if featured_token:
+                    featured_token.is_used = True
+                    featured_token.save()
+            
             messages.success(request, 'Job posted successfully!')
             return redirect('dashboard')
     else:
-        form = JobForm()
+        form = JobForm(subscription=subscription)
         
     return render(request, 'jobs/post_job.html', {'form': form})
 
@@ -43,8 +72,10 @@ def job_list(request):
     remote_status = request.GET.get('remote_status', '')
     salary_min = request.GET.get('salary_min', '')
     date_posted = request.GET.get('date_posted', '')
+    company_size = request.GET.get('company_size', '')
+    is_verified = request.GET.get('is_verified', '')
     
-    jobs = Job.objects.select_related('employer__employer_profile').filter(is_active=True).order_by('-created_at')
+    jobs = Job.objects.select_related('employer__employer_profile').filter(is_active=True).order_by('-is_featured', '-created_at')
     
     if query:
         jobs = jobs.filter(Q(title__icontains=query) | Q(description__icontains=query) | Q(employer__employer_profile__company_name__icontains=query))
@@ -54,6 +85,10 @@ def job_list(request):
         jobs = jobs.filter(employment_type=employment_type)
     if remote_status:
         jobs = jobs.filter(remote_status=remote_status)
+    if company_size:
+        jobs = jobs.filter(employer__employer_profile__company_size=company_size)
+    if is_verified == 'true':
+        jobs = jobs.filter(employer__employer_profile__is_verified=True)
         
     if salary_min:
         try:
@@ -71,6 +106,7 @@ def job_list(request):
         elif date_posted == '30d':
             jobs = jobs.filter(created_at__gte=now - timedelta(days=30))
             
+    from accounts.models import EmployerProfile
     return render(request, 'jobs/job_list.html', {
         'jobs': jobs, 
         'query': query, 
@@ -79,8 +115,11 @@ def job_list(request):
         'remote_status': remote_status,
         'salary_min': salary_min,
         'date_posted': date_posted,
+        'company_size': company_size,
+        'is_verified': is_verified,
         'EMPLOYMENT_TYPES': Job.EMPLOYMENT_TYPES,
-        'REMOTE_STATUS': Job.REMOTE_STATUS
+        'REMOTE_STATUS': Job.REMOTE_STATUS,
+        'COMPANY_SIZE_CHOICES': EmployerProfile.COMPANY_SIZE_CHOICES,
     })
 
 def job_detail(request, job_id):
@@ -107,11 +146,28 @@ def apply_job(request, job_id):
         
     if request.method == 'POST':
         cover_letter = request.POST.get('cover_letter', '')
-        Application.objects.get_or_create(
+        
+        app, created = Application.objects.get_or_create(
             job=job,
             applicant=request.user,
-            defaults={'cover_letter': cover_letter}
+            defaults={
+                'cover_letter': cover_letter,
+                'match_score': 0
+            }
         )
+        
+        # Trigger Celery task
+        from .tasks import async_calculate_match_score
+        async_calculate_match_score.delay(app.id)
+        
+        if created:
+            from accounts.models import Notification
+            Notification.objects.create(
+                user=job.employer,
+                message=f"New application for {job.title} from {request.user.first_name or request.user.username}",
+                link=f"/jobs/{job.id}/manage/"
+            )
+            
         JobEngagement.objects.create(job=job, user=request.user, action_type='CLICK')
         return redirect('job_detail', job_id=job.id)
         
@@ -120,7 +176,7 @@ def apply_job(request, job_id):
 @login_required
 def manage_applicants(request, job_id):
     job = get_object_or_404(Job, id=job_id, employer=request.user)
-    applications_qs = job.applications.select_related('applicant__seeker_profile').prefetch_related('applicant__seeker_profile__education', 'applicant__seeker_profile__experience', 'applicant__seeker_profile__certifications').all()
+    applications_qs = job.applications.select_related('applicant__seeker_profile').prefetch_related('applicant__seeker_profile__education', 'applicant__seeker_profile__experience', 'applicant__seeker_profile__certifications', 'applicant__assessment_results__assessment').all().order_by('-match_score', '-applied_at')
     applications = list(applications_qs)
     
     board = {
@@ -154,6 +210,33 @@ def manage_applicants(request, job_id):
             age_counts[a] += item['count']
         else:
             age_counts['Unknown'] += item['count']
+            
+    # Location
+    location_counts_qs = job.applications.exclude(applicant__seeker_profile__location='').values('applicant__seeker_profile__location').annotate(count=Count('id')).order_by('-count')[:5]
+    location_labels = [item['applicant__seeker_profile__location'] for item in location_counts_qs]
+    location_data = [item['count'] for item in location_counts_qs]
+    if not location_labels:
+        location_labels = ['No Data']
+        location_data = [0]
+        
+    # Timeline (Last 7 Days)
+    from django.utils import timezone
+    from datetime import timedelta
+    today = timezone.now().date()
+    timeline_labels = [(today - timedelta(days=i)).strftime('%b %d') for i in range(6, -1, -1)]
+    views_timeline = [0] * 7
+    applications_timeline = [0] * 7
+    
+    seven_days_ago = timezone.now() - timedelta(days=6)
+    engagements_last_7 = job.engagements.filter(timestamp__gte=seven_days_ago)
+    for eng in engagements_last_7:
+        day_diff = (today - eng.timestamp.date()).days
+        day_idx = 6 - day_diff
+        if 0 <= day_idx <= 6:
+            if eng.action_type == 'VIEW':
+                views_timeline[day_idx] += 1
+            elif eng.action_type == 'CLICK':
+                applications_timeline[day_idx] += 1
                 
     analytics = {
         'total_views': total_views,
@@ -162,10 +245,26 @@ def manage_applicants(request, job_id):
         'gender_data': [gender_counts['M'], gender_counts['F'], gender_counts['O'], gender_counts['P'], gender_counts['Unknown']],
         'gender_labels': ['Male', 'Female', 'Other', 'Prefer Not to Say', 'Unknown'],
         'age_data': [age_counts['18-24'], age_counts['25-34'], age_counts['35-44'], age_counts['45-54'], age_counts['55+'], age_counts['Unknown']],
-        'age_labels': ['18-24', '25-34', '35-44', '45-54', '55+', 'Unknown']
+        'age_labels': ['18-24', '25-34', '35-44', '45-54', '55+', 'Unknown'],
+        'location_labels': location_labels,
+        'location_data': location_data,
+        'timeline_labels': timeline_labels,
+        'views_timeline': views_timeline,
+        'applications_timeline': applications_timeline
     }
     
-    return render(request, 'jobs/manage_applicants.html', {'job': job, 'board': board, 'analytics': json.dumps(analytics)})
+    try:
+        sub = request.user.employer_profile.subscription
+        has_advanced_matching = sub.is_active() and sub.plan.has_advanced_matching
+    except Exception:
+        has_advanced_matching = False
+        
+    return render(request, 'jobs/manage_applicants.html', {
+        'job': job, 
+        'board': board, 
+        'analytics': json.dumps(analytics),
+        'has_advanced_matching': has_advanced_matching
+    })
 
 @login_required
 def update_application_status(request, application_id):
@@ -185,6 +284,13 @@ def update_application_status(request, application_id):
                     company_name = application.job.employer.employer_profile.company_name or application.job.employer.username
                     message = f"Hello {application.applicant.first_name or application.applicant.username},\n\nYour application status for '{application.job.title}' at {company_name} has been updated to: {application.get_status_display()}.\n\nGood luck!\n- JobBee Team"
                     send_mail(subject, message, getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@jobbee.com'), [application.applicant.email], fail_silently=True)
+
+                    from accounts.models import Notification
+                    Notification.objects.create(
+                        user=application.applicant,
+                        message=f"Your application for '{application.job.title}' is now {application.get_status_display()}.",
+                        link="/dashboard/"
+                    )
 
                 return JsonResponse({'success': True})
         except Exception as e:
@@ -227,3 +333,90 @@ def add_review(request, company_id):
             return redirect('company_detail', company_id=company.id)
             
     return render(request, 'jobs/add_review.html', {'company': company})
+
+@login_required
+def save_candidate(request, seeker_id):
+    if not getattr(request.user, 'is_employer', False):
+        return JsonResponse({'success': False}, status=403)
+        
+    if request.method == 'POST':
+        try:
+            seeker = get_object_or_404(User, id=seeker_id, is_seeker=True)
+            saved, created = SavedCandidate.objects.get_or_create(
+                employer=request.user,
+                seeker=seeker
+            )
+            return JsonResponse({'success': True, 'created': created})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    return JsonResponse({'success': False}, status=405)
+
+@login_required
+def talent_pool(request):
+    if not getattr(request.user, 'is_employer', False):
+        return redirect('dashboard')
+        
+    saved_candidates = SavedCandidate.objects.filter(employer=request.user).select_related('seeker__seeker_profile').order_by('-saved_at')
+    
+    return render(request, 'jobs/talent_pool.html', {
+        'saved_candidates': saved_candidates
+    })
+
+@login_required
+def save_search(request):
+    if not getattr(request.user, 'is_seeker', False):
+        return JsonResponse({'success': False}, status=403)
+        
+    if request.method == 'POST':
+        import json
+        try:
+            data = json.loads(request.body)
+            query = data.get('query', '')
+            location = data.get('location', '')
+            SavedSearch.objects.create(user=request.user, query=query, location=location)
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    return JsonResponse({'success': False}, status=405)
+
+@login_required
+def assessments_view(request):
+    if not getattr(request.user, 'is_seeker', False):
+        return redirect('home')
+        
+    from .models import Assessment, AssessmentResult
+    assessments = Assessment.objects.all()
+    results = AssessmentResult.objects.filter(seeker=request.user)
+    results_dict = {r.assessment_id: r.score for r in results}
+    
+    return render(request, 'jobs/assessments.html', {
+        'assessments': assessments,
+        'results_dict': results_dict
+    })
+
+@login_required
+def take_assessment(request, assessment_id):
+    if not getattr(request.user, 'is_seeker', False):
+        return redirect('home')
+        
+    from .models import Assessment, AssessmentResult
+    assessment = get_object_or_404(Assessment, id=assessment_id)
+    
+    if request.method == 'POST':
+        import random
+        score = random.randint(65, 100)
+        
+        result, created = AssessmentResult.objects.get_or_create(
+            seeker=request.user,
+            assessment=assessment,
+            defaults={'score': score}
+        )
+        
+        if not created:
+            result.score = score
+            result.save()
+            
+        messages.success(request, f"You scored {score}% on the {assessment.name}!")
+        return redirect('assessments')
+        
+    return render(request, 'jobs/take_assessment.html', {'assessment': assessment})

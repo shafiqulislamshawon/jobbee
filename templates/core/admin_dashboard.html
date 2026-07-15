@@ -47,22 +47,30 @@
             <!-- Dashboard Tab -->
             <div x-show="activeTab === 'dashboard'" x-cloak class="space-y-6">
                 <!-- Metrics Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                         <p class="text-sm font-medium text-gray-500 truncate">Total Users</p>
-                        <p class="mt-2 text-3xl font-extrabold text-primary">{{ total_users }}</p>
+                        <p class="mt-2 text-2xl font-extrabold text-primary">{{ total_users }}</p>
                     </div>
                     <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                        <p class="text-sm font-medium text-gray-500 truncate">Total Employers</p>
-                        <p class="mt-2 text-3xl font-extrabold text-primary">{{ total_employers }}</p>
-                    </div>
-                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                        <p class="text-sm font-medium text-gray-500 truncate">Total Seekers</p>
-                        <p class="mt-2 text-3xl font-extrabold text-primary">{{ total_seekers }}</p>
+                        <p class="text-sm font-medium text-gray-500 truncate">Employers</p>
+                        <p class="mt-2 text-2xl font-extrabold text-primary">{{ total_employers }}</p>
                     </div>
                     <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                         <p class="text-sm font-medium text-gray-500 truncate">Active Jobs</p>
-                        <p class="mt-2 text-3xl font-extrabold text-accent">{{ active_jobs }}</p>
+                        <p class="mt-2 text-2xl font-extrabold text-accent">{{ active_jobs }}</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                        <p class="text-sm font-medium text-gray-500 truncate">Applications</p>
+                        <p class="mt-2 text-2xl font-extrabold text-gray-700">{{ total_applications }}</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 border-l-4 border-l-blue-500">
+                        <p class="text-sm font-medium text-gray-500 truncate">Subscriptions</p>
+                        <p class="mt-2 text-2xl font-extrabold text-blue-600">{{ active_subscriptions }}</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 border-l-4 border-l-green-500">
+                        <p class="text-sm font-medium text-gray-500 truncate">Revenue</p>
+                        <p class="mt-2 text-2xl font-extrabold text-green-600">৳{{ total_revenue }}</p>
                     </div>
                 </div>
 
@@ -79,7 +87,7 @@
             <div x-show="activeTab === 'analytics'" x-cloak class="space-y-6">
                 
                 <!-- Notice for Google Analytics -->
-                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-md">
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-md flex justify-between items-center">
                     <div class="flex">
                         <div class="flex-shrink-0">
                             <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
@@ -92,13 +100,26 @@
                             </p>
                         </div>
                     </div>
+                    <div>
+                        <a href="{% url 'export_platform_data_csv' %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition">
+                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Export BI Data (CSV)
+                        </a>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Jobs by Employment Type Chart -->
+                <!-- Financial BI: Revenue Trend -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 w-full mt-6">
+                    <h3 class="text-lg font-bold text-primary mb-4">Monthly Recurring Revenue (MRR)</h3>
+                    <div class="h-64 w-full">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <h3 class="text-lg font-bold text-primary mb-4">Jobs by Employment Type</h3>
-                        <div class="h-64 w-full relative">
+                        <h3 class="text-lg font-bold text-primary mb-4">Jobs by Category</h3>
+                        <div class="h-64">
                             <canvas id="categoryChart"></canvas>
                         </div>
                     </div>
@@ -168,14 +189,26 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     {% if user_obj != request.user %}
-                                    <form action="{% url 'admin_toggle_user_status' user_obj.id %}" method="post">
-                                        {% csrf_token %}
-                                        {% if user_obj.is_active %}
-                                            <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to deactivate this user?');">Deactivate</button>
-                                        {% else %}
-                                            <button type="submit" class="text-green-600 hover:text-green-900">Activate</button>
+                                    <div class="flex justify-end gap-3">
+                                        {% if user_obj.is_employer %}
+                                        <form action="{% url 'admin_toggle_employer_verification' user_obj.employer_profile.id %}" method="post">
+                                            {% csrf_token %}
+                                            {% if user_obj.employer_profile.is_verified %}
+                                                <button type="submit" class="text-yellow-600 hover:text-yellow-900">Unverify</button>
+                                            {% else %}
+                                                <button type="submit" class="text-blue-600 hover:text-blue-900">Verify</button>
+                                            {% endif %}
+                                        </form>
                                         {% endif %}
-                                    </form>
+                                        <form action="{% url 'admin_toggle_user_status' user_obj.id %}" method="post">
+                                            {% csrf_token %}
+                                            {% if user_obj.is_active %}
+                                                <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to deactivate this user?');">Deactivate</button>
+                                            {% else %}
+                                                <button type="submit" class="text-green-600 hover:text-green-900">Activate</button>
+                                            {% endif %}
+                                        </form>
+                                    </div>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -317,6 +350,31 @@ document.addEventListener('DOMContentLoaded', function() {
             scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
         }
     });
+
+    // Financial Analytics: MRR
+    const ctxRevenue = document.getElementById('revenueChart');
+    if (ctxRevenue) {
+        new Chart(ctxRevenue.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: {{ revenue_labels|safe }},
+                datasets: [{
+                    label: 'Revenue (MRR)',
+                    data: {{ revenue_data|safe }},
+                    fill: true,
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                    borderColor: '#10b981',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
 
 });
 </script>

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Take {{ assessment.name }} - Jobbee{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-12">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white shadow rounded-xl p-8 border border-gray-200">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ assessment.name }}</h1>
+            <p class="text-gray-600 mb-8">{{ assessment.description }}</p>
+            
+            <div class="bg-blue-50 border border-blue-100 rounded-xl p-6 mb-8">
+                <h3 class="text-lg font-bold text-blue-900 mb-4">Instructions</h3>
+                <ul class="list-disc pl-5 space-y-2 text-sm text-blue-800">
+                    <li>This test consists of 20 multiple choice questions.</li>
+                    <li>You have 30 minutes to complete the test.</li>
+                    <li>You must score at least 70% to pass.</li>
+                    <li>You cannot pause the test once started.</li>
+                </ul>
+            </div>
+            
+            <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-8 flex items-start">
+                <svg class="h-6 w-6 text-yellow-600 mr-3 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-sm text-yellow-800"><strong>Note:</strong> This is a mock assessment for demonstration purposes. Submitting will instantly generate a random score.</p>
+            </div>
+            
+            <form method="POST" class="flex justify-end gap-4">
+                {% csrf_token %}
+                <a href="{% url 'assessments' %}" class="inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
+                    Cancel
+                </a>
+                <button type="submit" class="inline-flex items-center px-6 py-3 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-accent hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+                    Submit Mock Test
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

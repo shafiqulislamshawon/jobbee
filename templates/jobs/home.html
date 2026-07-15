@@ -276,11 +276,18 @@
         <div id="cards-container" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {% for job in recent_jobs %}
             <!-- Light Spotlight Card -->
-            <a href="{% url 'job_detail' job.id %}" onclick="Analytics.trackJobClick('{{ job.title|escapejs }}', '{{ job.employer.username|escapejs }}')" class="reveal-on-scroll spotlight-card-light rounded-2xl block h-full group">
-                <div class="card-content-light p-6 flex flex-col rounded-2xl">
+            <a href="{% url 'job_detail' job.id %}" onclick="Analytics.trackJobClick('{{ job.title|escapejs }}', '{{ job.employer.username|escapejs }}')" class="reveal-on-scroll spotlight-card-light rounded-2xl block h-full group {% if job.is_featured %}ring-2 ring-yellow-400{% endif %}">
+                <div class="card-content-light p-6 flex flex-col rounded-2xl {% if job.is_featured %}bg-gradient-to-br from-white to-yellow-50{% endif %}">
                     <div class="flex items-start justify-between mb-6">
                         <div class="flex-1 pr-4">
-                            <h3 class="text-lg font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors line-clamp-1">{{ job.title }}</h3>
+                            <h3 class="text-lg font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors line-clamp-1">
+                                {{ job.title }}
+                                {% if job.is_featured %}
+                                <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-gradient-to-r from-yellow-400 to-yellow-500 text-white shadow-sm align-middle">
+                                    FEATURED
+                                </span>
+                                {% endif %}
+                            </h3>
                             <p class="text-sm font-semibold text-gray-500">{{ job.employer.employer_profile.company_name|default:job.employer.username }}</p>
                         </div>
                         {% if job.employer.employer_profile.logo %}

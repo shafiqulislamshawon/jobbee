@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Talent Pool - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div class="md:flex md:items-center md:justify-between mb-8">
+        <div class="flex-1 min-w-0">
+            <h2 class="text-2xl font-bold leading-7 text-primary sm:text-3xl sm:truncate">
+                Talent Pool
+            </h2>
+            <p class="mt-1 text-sm text-gray-500">
+                Candidates you've saved from previous job applications.
+            </p>
+        </div>
+        <div class="mt-4 flex md:mt-0 md:ml-4">
+            <a href="{% url 'dashboard' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+                &larr; Dashboard
+            </a>
+        </div>
+    </div>
+
+    {% if saved_candidates %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for candidate in saved_candidates %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col justify-between hover:shadow-md transition">
+            <div>
+                <div class="flex items-start justify-between mb-2">
+                    <h3 class="text-lg font-bold text-gray-900">{{ candidate.seeker.first_name|default:candidate.seeker.username }} {{ candidate.seeker.last_name }}</h3>
+                    {% if candidate.seeker.seeker_profile.resume %}
+                    <a href="{{ candidate.seeker.seeker_profile.resume.url }}" target="_blank" class="text-accent hover:text-blue-700" title="View Resume">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                        </svg>
+                    </a>
+                    {% endif %}
+                </div>
+                <p class="text-sm text-gray-500 mb-4">{{ candidate.seeker.email }}</p>
+                
+                <div class="mb-4">
+                    <p class="text-xs font-bold text-gray-900 uppercase tracking-wide mb-1">Skills</p>
+                    <p class="text-sm text-gray-700">{{ candidate.seeker.seeker_profile.skills|default:"No skills listed"|truncatechars:100 }}</p>
+                </div>
+            </div>
+            
+            <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                <span class="text-xs text-gray-500">Saved on {{ candidate.saved_at|date:"M d, Y" }}</span>
+                <a href="{% url 'applicant_profile' candidate.seeker.id %}" target="_blank" class="text-sm font-medium text-white bg-accent px-3 py-1.5 rounded hover:bg-blue-600 transition">View Profile</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No candidates saved</h3>
+        <p class="mt-1 text-sm text-gray-500">
+            When reviewing applications, you can save promising candidates to your Talent Pool for future opportunities.
+        </p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

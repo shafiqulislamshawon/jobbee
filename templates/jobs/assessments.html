@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Skill Assessments - Jobbee{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="md:flex md:items-center md:justify-between mb-8">
+            <div class="flex-1 min-w-0">
+                <h2 class="text-2xl font-bold leading-7 text-primary sm:text-3xl sm:truncate">
+                    Skill Assessments
+                </h2>
+                <p class="mt-1 text-sm text-gray-500">
+                    Take tests to prove your skills and stand out to employers.
+                </p>
+            </div>
+            <div class="mt-4 flex md:mt-0 md:ml-4 gap-3">
+                <a href="{% url 'dashboard' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {% for assessment in assessments %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col h-full">
+                <div class="flex-grow">
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">{{ assessment.name }}</h3>
+                    <p class="text-sm text-gray-600 mb-6">{{ assessment.description }}</p>
+                </div>
+                
+                <div class="mt-auto border-t border-gray-100 pt-4 flex items-center justify-between">
+                    {% for key, value in results_dict.items %}
+                        {% if key == assessment.id %}
+                        <div>
+                            <span class="block text-xs text-gray-500">Your Score</span>
+                            <span class="block text-lg font-bold text-accent">{{ value }}%</span>
+                        </div>
+                        <a href="{% url 'take_assessment' assessment.id %}" class="text-sm font-medium text-accent hover:text-blue-500">Retake</a>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if assessment.id not in results_dict %}
+                        <span class="text-sm text-gray-500">Not taken yet</span>
+                        <a href="{% url 'take_assessment' assessment.id %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+                            Take Test
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-3 text-center py-12">
+                <p class="text-gray-500">No assessments available at the moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

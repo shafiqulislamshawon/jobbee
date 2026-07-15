@@ -8,12 +8,19 @@ from jobs.models import Job, Application
 @user_passes_test(lambda u: u.is_staff)
 def frontend_admin_dashboard(request):
 
+    from subscriptions.models import EmployerSubscription, Transaction
+    from django.db.models import Sum
+
     # Metrics
     total_users = User.objects.count()
     total_employers = User.objects.filter(is_employer=True).count()
     total_seekers = User.objects.filter(is_seeker=True).count()
     active_jobs = Job.objects.filter(is_active=True).count()
     total_applications = Application.objects.count()
+    
+    # Subscription Metrics
+    active_subscriptions = EmployerSubscription.objects.filter(status='ACTIVE').count()
+    total_revenue = Transaction.objects.filter(status='COMPLETED').aggregate(Sum('amount'))['amount__sum'] or 0
     
     # Advanced Analytics
     # 1. Jobs by Employment Type
@@ -30,6 +37,16 @@ def frontend_admin_dashboard(request):
     top_jobs_labels = [job.title for job in top_jobs]
     top_jobs_data = [job.app_count for job in top_jobs]
     
+    # 4. Monthly Revenue Trend
+    from django.db.models.functions import TruncMonth
+    import json
+    monthly_revenue = Transaction.objects.filter(status='COMPLETED').annotate(
+        month=TruncMonth('created_at')
+    ).values('month').annotate(total=Sum('amount')).order_by('month')
+    
+    revenue_labels = [rev['month'].strftime('%b %Y') for rev in monthly_revenue if rev['month']]
+    revenue_data = [float(rev['total']) for rev in monthly_revenue]
+    
     # All Data for Tables
     all_users = User.objects.order_by('-date_joined')
     all_jobs = Job.objects.select_related('employer__employer_profile').order_by('-created_at')
@@ -40,6 +57,8 @@ def frontend_admin_dashboard(request):
         'total_seekers': total_seekers,
         'active_jobs': active_jobs,
         'total_applications': total_applications,
+        'active_subscriptions': active_subscriptions,
+        'total_revenue': total_revenue,
         'all_users': all_users,
         'all_jobs': all_jobs,
         
@@ -50,6 +69,10 @@ def frontend_admin_dashboard(request):
         'onsite_jobs': onsite_jobs,
         'top_jobs_labels': top_jobs_labels,
         'top_jobs_data': top_jobs_data,
+        
+        # Financial BI
+        'revenue_labels': json.dumps(revenue_labels),
+        'revenue_data': json.dumps(revenue_data),
     }
     return render(request, 'core/admin_dashboard.html', context)
 
@@ -67,6 +90,17 @@ def admin_toggle_user_status(request, user_id):
     return redirect('frontend_admin')
 
 @user_passes_test(lambda u: u.is_staff)
+def admin_toggle_employer_verification(request, profile_id):
+    if request.method == 'POST':
+        from accounts.models import EmployerProfile
+        profile = get_object_or_404(EmployerProfile, id=profile_id)
+        profile.is_verified = not profile.is_verified
+        profile.save()
+        status = "verified" if profile.is_verified else "unverified"
+        messages.success(request, f"Employer {profile.company_name} has been {status}.")
+    return redirect('frontend_admin')
+
+@user_passes_test(lambda u: u.is_staff)
 def admin_delete_job(request, job_id):
     if request.method == 'POST':
         job = get_object_or_404(Job, id=job_id)
@@ -79,6 +113,42 @@ def privacy_policy(request):
 
 def terms_of_service(request):
     return render(request, 'core/terms.html')
+
+@user_passes_test(lambda u: u.is_staff)
+def export_platform_data_csv(request):
+    import csv
+    from django.http import HttpResponse
+    from jobs.models import Job, Application
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="jobbee_bi_data.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Job ID', 'Title', 'Employer', 'Category', 'Employment Type', 'Remote Status', 'Created At', 'Views Count', 'Applications Count', 'Hired Count'])
+    
+    jobs = Job.objects.annotate(
+        app_count=Count('applications')
+    ).select_related('employer__employer_profile', 'category')
+    
+    for job in jobs:
+        employer_name = job.employer.employer_profile.company_name if hasattr(job.employer, 'employer_profile') else job.employer.username
+        category_name = job.category.name if job.category else "Uncategorized"
+        hired_count = Application.objects.filter(job=job, status='OFFER').count()
+        
+        writer.writerow([
+            job.id,
+            job.title,
+            employer_name,
+            category_name,
+            job.get_employment_type_display(),
+            job.get_remote_status_display(),
+            job.created_at.strftime('%Y-%m-%d'),
+            job.views_count,
+            job.app_count,
+            hired_count
+        ])
+        
+    return response
 
 def help_center(request):
     return render(request, 'core/help.html')

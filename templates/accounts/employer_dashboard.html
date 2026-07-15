@@ -13,12 +13,53 @@
                 Welcome back, {{ request.user.employer_profile.company_name|default:request.user.username }}!
             </p>
         </div>
-        <div class="mt-4 flex md:mt-0 md:ml-4">
+        <div class="mt-4 flex md:mt-0 md:ml-4 gap-3">
+            <a href="{% url 'employer_verification' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+                Get Verified
+            </a>
+            <a href="{% url 'manage_recruiters' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+                Manage Team
+            </a>
+            <a href="{% url 'subscriptions:billing_dashboard' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+                Billing & Invoices
+            </a>
+            <a href="{% url 'talent_pool' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+                Talent Pool
+            </a>
+            <a href="{% url 'subscriptions:addons_store' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+                Add-ons Store
+            </a>
             <a href="{% url 'post_job' %}" class="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
-                Post New Job
+                Post a New Job
             </a>
         </div>
     </div>
+    
+    {% if subscription and subscription.is_active %}
+    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 mb-8 p-6 flex justify-between items-center">
+        <div>
+            <h3 class="text-lg font-medium text-gray-900">Current Plan: {{ subscription.plan.name }}</h3>
+            <p class="text-sm text-gray-500">Expires on {{ subscription.end_date|date:"M d, Y" }}</p>
+        </div>
+        <div class="text-right">
+            <p class="text-sm font-medium text-gray-900">Jobs Quota: {{ subscription.jobs_posted }} / {% if subscription.plan.job_limit == -1 %}Unlimited{% else %}{{ subscription.plan.job_limit }}{% endif %}</p>
+            <div class="mt-2 flex gap-4 justify-end">
+                <a href="{% url 'subscriptions:addons_store' %}" class="text-gray-600 hover:text-gray-900 text-sm font-medium">Add-ons Store</a>
+                <a href="{% url 'subscriptions:pricing' %}" class="text-accent hover:text-blue-600 text-sm font-medium">Upgrade Plan</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
+        <div class="flex">
+            <div class="ml-3">
+                <p class="text-sm text-yellow-700">
+                    You don't have an active subscription. <a href="{% url 'subscriptions:pricing' %}" class="font-medium underline text-yellow-700 hover:text-yellow-600">Choose a plan</a> to start posting jobs.
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
     
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-8">
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200">
@@ -37,6 +78,25 @@
             <div class="px-4 py-5 sm:p-6">
                 <dt class="text-sm font-medium text-gray-500 truncate">Total Applicants</dt>
                 <dd class="mt-1 text-3xl font-extrabold text-green-600">{{ total_applicants }}</dd>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Business Intelligence Analytics Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Hiring Funnel Chart -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-bold text-primary mb-4">Hiring Funnel Analytics</h3>
+            <div class="h-64 w-full">
+                <canvas id="funnelChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 30-Day Activity Trend -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-bold text-primary mb-4">Application Trends (30 Days)</h3>
+            <div class="h-64 w-full">
+                <canvas id="trendChart"></canvas>
             </div>
         </div>
     </div>
@@ -102,4 +162,59 @@
         </ul>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Funnel Chart Data
+    const funnelCtx = document.getElementById('funnelChart').getContext('2d');
+    new Chart(funnelCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Views', 'Applicants', 'Shortlisted', 'Hired'],
+            datasets: [{
+                data: {{ funnel_data|safe }},
+                backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right' }
+            }
+        }
+    });
+
+    // Trend Chart Data
+    const trendCtx = document.getElementById('trendChart').getContext('2d');
+    new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: {{ trend_labels|safe }},
+            datasets: [{
+                label: 'New Applications',
+                data: {{ trend_data|safe }},
+                fill: true,
+                backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                borderColor: '#10b981',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, ticks: { precision: 0 } }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

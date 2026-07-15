@@ -13,8 +13,11 @@
                 Welcome back, {{ request.user.first_name|default:request.user.username }}!
             </p>
         </div>
-        <div class="mt-4 flex md:mt-0 md:ml-4">
-            <a href="{% url 'job_list' %}" class="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+        <div class="mt-4 flex md:mt-0 md:ml-4 gap-3">
+            <a href="{% url 'assessments' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+                Skill Assessments
+            </a>
+            <a href="{% url 'job_list' %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
                 Browse Jobs
             </a>
         </div>
@@ -45,8 +48,32 @@
     <div class="bg-white shadow-sm sm:rounded-lg border border-gray-200 mb-8 p-6">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-lg leading-6 font-medium text-gray-900">My Profile</h3>
-            <a href="{% url 'edit_profile' %}" class="text-sm font-medium text-accent hover:underline">Edit Basic Info</a>
+            <div class="flex gap-3">
+                <a href="{% url 'resume_builder' %}" class="text-sm font-bold text-white bg-green-600 hover:bg-green-700 px-3 py-1.5 rounded transition">Resume Builder</a>
+                <a href="{% url 'edit_profile' %}" class="text-sm font-medium text-accent hover:underline py-1.5">Edit Basic Info</a>
+            </div>
         </div>
+        
+        {% if request.user.seeker_profile.resume_score is not None %}
+        <div class="mb-6 bg-blue-50 p-4 rounded-xl border border-blue-100 flex items-start gap-4 shadow-sm">
+            <div class="shrink-0 w-14 h-14 rounded-full flex items-center justify-center font-black text-xl text-white shadow-inner {% if request.user.seeker_profile.resume_score >= 80 %}bg-green-500{% elif request.user.seeker_profile.resume_score >= 50 %}bg-yellow-500{% else %}bg-red-500{% endif %}">
+                {{ request.user.seeker_profile.resume_score }}
+            </div>
+            <div>
+                <h4 class="font-bold text-gray-900">Profile Score</h4>
+                <p class="text-sm text-gray-700 mt-1">
+                    {% if request.user.seeker_profile.resume_suggestions %}
+                        {{ request.user.seeker_profile.resume_suggestions|linebreaksbr }}
+                    {% else %}
+                        Your profile looks excellent! You are ready to apply for top jobs.
+                    {% endif %}
+                </p>
+                {% if request.user.seeker_profile.missing_skills %}
+                <p class="text-xs text-red-600 font-semibold mt-2">Missing Sections: {{ request.user.seeker_profile.missing_skills }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Basic Info -->
@@ -193,6 +220,60 @@
             <li>
                 <div class="px-4 py-12 sm:px-6 text-center text-gray-500 text-sm">
                     You haven't applied to any jobs yet.
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Recommendations Section -->
+    <div class="bg-white shadow-sm overflow-hidden sm:rounded-lg border border-gray-200 mt-8">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                Recommended For You
+            </h3>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                Smart Matches
+            </span>
+        </div>
+        <ul role="list" class="divide-y divide-gray-200">
+            {% for item in recommended_jobs %}
+            <li>
+                <div class="block hover:bg-gray-50 transition">
+                    <div class="px-4 py-4 sm:px-6">
+                        <div class="flex items-center justify-between">
+                            <a href="{% url 'job_detail' item.job.id %}" class="text-sm font-bold text-accent hover:underline truncate">
+                                {{ item.job.title }}
+                            </a>
+                            <div class="ml-2 flex-shrink-0 flex">
+                                <span class="bg-green-100 text-green-800 text-xs font-bold px-2.5 py-0.5 rounded shadow-sm">
+                                    {{ item.score }}% Match
+                                </span>
+                            </div>
+                        </div>
+                        <div class="mt-2 sm:flex sm:justify-between">
+                            <div class="sm:flex">
+                                <p class="flex items-center text-sm text-gray-500">
+                                    <svg class="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m3-4h1m-1 4h1m-5 8h8" />
+                                    </svg>
+                                    {{ item.job.employer.employer_profile.company_name|default:item.job.employer.username }}
+                                </p>
+                            </div>
+                            <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                                <svg class="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                </svg>
+                                <p>{{ item.job.location|default:"Remote" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            {% empty %}
+            <li>
+                <div class="px-4 py-12 sm:px-6 text-center text-gray-500 text-sm">
+                    No recommendations right now. Try adding more skills to your profile!
                 </div>
             </li>
             {% endfor %}

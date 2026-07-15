@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Pricing Plans{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold">Choose the Right Plan for Your Business</h1>
+        <p class="lead text-muted">Post jobs, access premium features, and hire top talent.</p>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 mb-3 text-center">
+        {% for plan in plans %}
+        <div class="col">
+            <div class="card mb-4 rounded-3 shadow-sm {% if forloop.counter == 2 %}border-primary{% endif %}">
+                <div class="card-header py-3 {% if forloop.counter == 2 %}text-white bg-primary border-primary{% endif %}">
+                    <h4 class="my-0 fw-normal">{{ plan.name }}</h4>
+                </div>
+                <div class="card-body">
+                    <h1 class="card-title pricing-card-title">$ {{ plan.price }}<small class="text-muted fw-light">/{{ plan.duration_days }}d</small></h1>
+                    <ul class="list-unstyled mt-3 mb-4">
+                        <li>
+                            {% if plan.job_limit == -1 %}
+                                Unlimited active jobs
+                            {% else %}
+                                {{ plan.job_limit }} active job{% if plan.job_limit > 1 %}s{% endif %}
+                            {% endif %}
+                        </li>
+                        {% if plan.has_banner %}
+                        <li>Company Banner on Profile</li>
+                        {% endif %}
+                        {% if plan.can_feature_jobs %}
+                        <li>Featured Jobs Supported</li>
+                        {% endif %}
+                        {% if plan.has_verification_badge %}
+                        <li>Verified Employer Badge</li>
+                        {% endif %}
+                    </ul>
+                    <a href="{% url 'subscriptions:checkout' plan.id %}" class="w-100 btn btn-lg {% if forloop.counter == 2 %}btn-primary{% else %}btn-outline-primary{% endif %}">Get Started</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
