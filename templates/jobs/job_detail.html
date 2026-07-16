@@ -2,17 +2,19 @@
 
 {% block title %}{{ job.title }} - {{ site_settings.site_name }}{% endblock %}
 
-{% block extra_head %}
-<meta property="og:title" content="{{ job.title }} at {{ job.employer.employer_profile.company_name|default:job.employer.username|escapejs }}" />
-<meta property="og:description" content="{{ job.description|truncatewords:20|escapejs }}" />
-<meta property="og:url" content="{{ request.build_absolute_uri }}" />
-<meta property="og:type" content="website" />
+{% block meta_description %}{{ job.description|striptags|truncatewords:20|escapejs }}{% endblock %}
+{% block og_title %}{{ job.title }} at {{ job.employer.employer_profile.company_name|default:job.employer.username|escapejs }}{% endblock %}
+{% block og_description %}{{ job.description|striptags|truncatewords:20|escapejs }}{% endblock %}
+{% block twitter_title %}{{ job.title }} at {{ job.employer.employer_profile.company_name|default:job.employer.username|escapejs }}{% endblock %}
+{% block twitter_description %}{{ job.description|striptags|truncatewords:20|escapejs }}{% endblock %}
+
+{% block structured_data %}
 <script type="application/ld+json">
 {
   "@context" : "https://schema.org/",
   "@type" : "JobPosting",
   "title" : "{{ job.title|escapejs }}",
-  "description" : "<p>{{ job.description|linebreaksbr|escapejs }}</p>",
+  "description" : "<p>{{ job.description|striptags|linebreaksbr|escapejs }}</p>",
   "identifier": {
     "@type": "PropertyValue",
     "name": "{{ job.employer.employer_profile.company_name|default:job.employer.username|escapejs }}",

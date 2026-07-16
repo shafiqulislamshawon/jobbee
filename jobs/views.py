@@ -6,13 +6,49 @@ from django.db.models import Q, Avg, Count
 from django.core.mail import send_mail
 from django.conf import settings
 from .models import Job, Application, JobEngagement
-from accounts.models import EmployerProfile, CompanyReview
+from accounts.models import EmployerProfile, CompanyReview, User
 from django.views.decorators.cache import cache_page
 
-@cache_page(60 * 15)
 def home(request):
+    from .models import JobCategory
     recent_jobs = Job.objects.select_related('employer__employer_profile').filter(is_active=True).order_by('-created_at')[:6]
-    return render(request, 'jobs/home.html', {'recent_jobs': recent_jobs})
+    
+    # Calculate Dynamic Stats
+    active_jobs_count = Job.objects.filter(is_active=True).count()
+    employers_count = User.objects.filter(is_employer=True).count()
+    
+    processed_apps = Application.objects.exclude(status='PENDING').order_by('-updated_at')[:50]
+    if processed_apps:
+        total_seconds = sum((app.updated_at - app.applied_at).total_seconds() for app in processed_apps)
+        avg_hours = max(1, int(total_seconds / len(processed_apps) / 3600))
+    else:
+        avg_hours = 24
+        
+    # Popular Categories
+    from django.db.models import Count, Q
+    categories = JobCategory.objects.annotate(
+        active_job_count=Count('jobs', filter=Q(jobs__is_active=True))
+    ).order_by('-active_job_count', 'name')[:50]
+    
+    # Trending Companies
+    from accounts.models import EmployerProfile
+    trending_companies = EmployerProfile.objects.annotate(
+        active_job_count=Count('user__jobs_posted', filter=Q(user__jobs_posted__is_active=True))
+    ).order_by('-active_job_count', 'company_name')[:50]
+    
+    # Pricing Plans for cards
+    from subscriptions.models import Plan
+    plans = Plan.objects.all().order_by('price')
+        
+    return render(request, 'jobs/home.html', {
+        'recent_jobs': recent_jobs,
+        'active_jobs_count': active_jobs_count,
+        'employers_count': employers_count,
+        'avg_hours': avg_hours,
+        'categories': categories,
+        'trending_companies': trending_companies,
+        'plans': plans,
+    })
 
 from django.utils import timezone
 from datetime import timedelta
@@ -74,6 +110,7 @@ def job_list(request):
     date_posted = request.GET.get('date_posted', '')
     company_size = request.GET.get('company_size', '')
     is_verified = request.GET.get('is_verified', '')
+    category_id = request.GET.get('category', '')
     
     jobs = Job.objects.select_related('employer__employer_profile').filter(is_active=True).order_by('-is_featured', '-created_at')
     
@@ -89,6 +126,8 @@ def job_list(request):
         jobs = jobs.filter(employer__employer_profile__company_size=company_size)
     if is_verified == 'true':
         jobs = jobs.filter(employer__employer_profile__is_verified=True)
+    if category_id:
+        jobs = jobs.filter(category_id=category_id)
         
     if salary_min:
         try:
@@ -106,9 +145,22 @@ def job_list(request):
         elif date_posted == '30d':
             jobs = jobs.filter(created_at__gte=now - timedelta(days=30))
             
+    # Pagination
+    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+    page = request.GET.get('page', 1)
+    paginator = Paginator(jobs, 15)
+    
+    try:
+        jobs_page = paginator.page(page)
+    except PageNotAnInteger:
+        jobs_page = paginator.page(1)
+    except EmptyPage:
+        jobs_page = paginator.page(paginator.num_pages)
+            
     from accounts.models import EmployerProfile
     return render(request, 'jobs/job_list.html', {
-        'jobs': jobs, 
+        'jobs': jobs_page,
+        'total_jobs': jobs.count(),
         'query': query, 
         'location': location,
         'employment_type': employment_type,
@@ -117,6 +169,7 @@ def job_list(request):
         'date_posted': date_posted,
         'company_size': company_size,
         'is_verified': is_verified,
+        'category_id': category_id,
         'EMPLOYMENT_TYPES': Job.EMPLOYMENT_TYPES,
         'REMOTE_STATUS': Job.REMOTE_STATUS,
         'COMPANY_SIZE_CHOICES': EmployerProfile.COMPANY_SIZE_CHOICES,

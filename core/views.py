@@ -4,6 +4,52 @@ from django.contrib import messages
 from django.db.models import Count
 from accounts.models import User
 from jobs.models import Job, Application
+from .models import HeroSectionSettings
+from .forms import HeroSectionSettingsForm
+
+@user_passes_test(lambda u: u.is_staff)
+def admin_hero_settings(request):
+    settings_obj = HeroSectionSettings.objects.first()
+    if not settings_obj:
+        settings_obj = HeroSectionSettings.objects.create()
+        
+    if request.method == 'POST':
+        form = HeroSectionSettingsForm(request.POST, instance=settings_obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Hero section settings updated successfully.')
+            return redirect('admin_hero_settings')
+    else:
+        form = HeroSectionSettingsForm(instance=settings_obj)
+        
+    return render(request, 'core/admin_hero_settings.html', {'form': form})
+
+@user_passes_test(lambda u: u.is_staff)
+def admin_trusted_companies(request):
+    from .models import TrustedCompany
+    from .forms import TrustedCompanyForm
+    
+    companies = TrustedCompany.objects.all()
+    
+    if request.method == 'POST':
+        form = TrustedCompanyForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Company logo added successfully.')
+            return redirect('admin_trusted_companies')
+    else:
+        form = TrustedCompanyForm()
+        
+    return render(request, 'core/admin_trusted_companies.html', {'companies': companies, 'form': form})
+
+@user_passes_test(lambda u: u.is_staff)
+def admin_delete_trusted_company(request, company_id):
+    from .models import TrustedCompany
+    if request.method == 'POST':
+        company = get_object_or_404(TrustedCompany, id=company_id)
+        company.delete()
+        messages.success(request, f"Company '{company.name}' deleted.")
+    return redirect('admin_trusted_companies')
 
 @user_passes_test(lambda u: u.is_staff)
 def frontend_admin_dashboard(request):

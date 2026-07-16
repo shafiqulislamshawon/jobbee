@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
-from .models import Plan, EmployerSubscription, Transaction, AddOn, EmployerAddOn
+from .models import Plan, EmployerSubscription, Transaction, AddOn, EmployerAddOn, AdSpace, AdBooking
 
 def pricing(request):
     plans = Plan.objects.all().order_by('price')
@@ -270,3 +270,30 @@ def download_invoice(request):
     response = HttpResponse(buffer, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="invoice.pdf"'
     return response
+
+from .forms import AdBookingForm
+
+def ad_spaces(request):
+    spaces = AdSpace.objects.filter(is_active=True)
+    return render(request, 'subscriptions/ad_spaces.html', {'spaces': spaces})
+
+@login_required
+def ad_book(request, space_id):
+    space = get_object_or_404(AdSpace, id=space_id, is_active=True)
+    if request.method == 'POST':
+        form = AdBookingForm(request.POST, request.FILES)
+        if form.is_valid():
+            booking = form.save(commit=False)
+            booking.user = request.user
+            booking.ad_space = space
+            days = (booking.end_date - booking.start_date).days
+            if days <= 0:
+                days = 1
+            booking.total_price = space.price_per_day * days
+            booking.save()
+            messages.success(request, 'Ad space booked successfully. It is now pending approval.')
+            return redirect('subscriptions:ad_spaces')
+    else:
+        form = AdBookingForm()
+    
+    return render(request, 'subscriptions/ad_book.html', {'form': form, 'space': space})

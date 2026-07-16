@@ -3,6 +3,24 @@ from accounts.models import User
 from django_countries.fields import CountryField
 from simple_history.models import HistoricalRecords
 
+class JobCategory(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=100, unique=True, blank=True)
+    icon = models.CharField(max_length=50, blank=True, help_text='Icon class name (e.g. from FontAwesome or similar)')
+
+    class Meta:
+        verbose_name_plural = 'Job Categories'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        from django.utils.text import slugify
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
 class Job(models.Model):
     EMPLOYMENT_TYPES = (
         ('FULL_TIME', 'Full Time'),
@@ -25,6 +43,7 @@ class Job(models.Model):
     )
 
     title = models.CharField(max_length=255, db_index=True)
+    category = models.ForeignKey(JobCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='jobs')
     description = models.TextField()
     responsibilities = models.TextField(blank=True)
     requirements = models.TextField(blank=True)

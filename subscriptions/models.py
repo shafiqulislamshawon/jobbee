@@ -11,6 +11,23 @@ class Plan(models.Model):
     can_feature_jobs = models.BooleanField(default=False)
     has_verification_badge = models.BooleanField(default=False)
     has_advanced_matching = models.BooleanField(default=False)
+    detail = models.CharField(max_length=255, blank=True, null=True, help_text="Short description of the plan")
+    
+    # Table Fields
+    best_for = models.CharField(max_length=255, blank=True, null=True)
+    job_posts_text = models.CharField(max_length=255, blank=True, null=True)
+    applications_text = models.CharField(max_length=255, blank=True, null=True, default='Unlimited')
+    cv_database_access = models.CharField(max_length=255, blank=True, null=True)
+    featured_jobs_text = models.CharField(max_length=255, blank=True, null=True)
+    homepage_placement = models.BooleanField(default=False)
+    social_media_promotion = models.CharField(max_length=255, blank=True, null=True)
+    company_branding = models.CharField(max_length=255, blank=True, null=True)
+    analytics_dashboard = models.CharField(max_length=255, blank=True, null=True)
+    dedicated_account_manager = models.BooleanField(default=False)
+    recruitment_consultation = models.BooleanField(default=False)
+    priority_customer_support = models.CharField(max_length=255, blank=True, null=True)
+    remote_hybrid_support = models.BooleanField(default=False)
+    custom_hiring_campaigns = models.BooleanField(default=False)
     
     def __str__(self):
         return self.name
@@ -85,3 +102,41 @@ class EmployerAddOn(models.Model):
     
     def __str__(self):
         return f"{self.addon.name} for {self.employer.company_name}"
+
+class AdSpace(models.Model):
+    name = models.CharField(max_length=100)
+    identifier = models.CharField(max_length=50, unique=True)
+    width = models.PositiveIntegerField(help_text="Width in pixels")
+    height = models.PositiveIntegerField(help_text="Height in pixels")
+    price_per_day = models.DecimalField(max_digits=10, decimal_places=2)
+    is_active = models.BooleanField(default=True)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.width}x{self.height})"
+
+class AdBooking(models.Model):
+    STATUS_CHOICES = (
+        ('PENDING', 'Pending Approval'),
+        ('APPROVED', 'Approved & Active'),
+        ('REJECTED', 'Rejected'),
+        ('COMPLETED', 'Completed / Expired'),
+    )
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='ad_bookings')
+    ad_space = models.ForeignKey(AdSpace, on_delete=models.CASCADE, related_name='bookings')
+    image = models.ImageField(upload_to='ads/')
+    target_url = models.URLField()
+    start_date = models.DateField()
+    end_date = models.DateField()
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Ad by {self.user.username} in {self.ad_space.name}"
+
+    @property
+    def is_currently_active(self):
+        from django.utils import timezone
+        today = timezone.now().date()
+        return self.status == 'APPROVED' and self.start_date <= today <= self.end_date

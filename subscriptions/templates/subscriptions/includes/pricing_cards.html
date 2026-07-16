@@ -1,0 +1,53 @@
+<div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-24">
+    {% for plan in plans %}
+    <div class="relative flex flex-col p-8 bg-white rounded-3xl border transition-all duration-300 hover:shadow-xl hover:-translate-y-2 {% if forloop.counter == 2 %}border-blue-500 ring-2 ring-blue-500 shadow-lg scale-105 z-10{% else %}border-gray-200 shadow-sm{% endif %}">
+        
+        {% if forloop.counter == 2 %}
+        <div class="absolute top-0 inset-x-0 -translate-y-1/2 flex justify-center">
+            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm uppercase tracking-wider ring-4 ring-white">
+                Most Popular
+            </span>
+        </div>
+        {% endif %}
+
+        <div class="mb-6 mt-2 text-center">
+            <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ plan.name }}</h3>
+            <p class="text-gray-500 text-sm h-10">{{ plan.best_for|default:"Everything you need to succeed." }}</p>
+        </div>
+
+        <div class="mb-8 flex flex-col items-center justify-center text-gray-900">
+            <div class="flex items-baseline">
+                <span class="text-5xl font-extrabold tracking-tight">৳{{ plan.price|floatformat:"0" }}</span>
+            </div>
+            <span class="mt-2 text-sm font-semibold text-gray-500 uppercase tracking-widest">
+                / {% if plan.duration_days == 365 %}Year{% elif plan.duration_days == 180 %}6 Months{% else %}{{ plan.duration_days }} Days{% endif %}
+            </span>
+        </div>
+
+        <ul class="flex-1 space-y-4 mb-8">
+            <li class="flex items-start">
+                <svg class="h-5 w-5 text-blue-500 shrink-0 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                <span class="text-gray-600 font-medium">{{ plan.job_posts_text|default:"1 Active Job" }}</span>
+            </li>
+            <li class="flex items-start">
+                <svg class="h-5 w-5 text-blue-500 shrink-0 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                <span class="text-gray-600 font-medium">{{ plan.cv_database_access|default:"Basic Access" }}</span>
+            </li>
+            <li class="flex items-start">
+                <svg class="h-5 w-5 text-blue-500 shrink-0 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                <span class="text-gray-600 font-medium">{{ plan.applications_text|default:"Unlimited Applications" }} Applications</span>
+            </li>
+        </ul>
+
+        <a href="{% url 'subscriptions:checkout' plan.id %}" class="w-full inline-flex justify-center items-center px-6 py-4 border border-transparent text-base font-bold rounded-xl shadow-sm transition-colors {% if forloop.counter == 2 %}text-white bg-blue-600 hover:bg-blue-700{% else %}text-blue-700 bg-blue-50 hover:bg-blue-100{% endif %}">
+            Get Started
+        </a>
+    </div>
+    {% endfor %}
+</div>

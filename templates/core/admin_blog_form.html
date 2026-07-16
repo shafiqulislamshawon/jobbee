@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}{% if is_edit %}Edit{% else %}New{% endif %} Blog Post - Jobbee{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-extrabold text-primary">{% if is_edit %}Edit Post{% else %}Create New Post{% endif %}</h1>
+            <p class="mt-2 text-sm text-gray-600">Use the rich text editor below to format your content, add images, and embed videos.</p>
+        </div>
+        <a href="{% url 'admin_blog_dashboard' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            &larr; Back to Blog Admin
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <form method="post" enctype="multipart/form-data" class="p-6 sm:p-8">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2 mb-8">
+                <div class="sm:col-span-2">
+                    <label for="{{ form.title.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-1">Post Title</label>
+                    {{ form.title }}
+                    {% if form.title.errors %}<p class="mt-1 text-sm text-red-600">{{ form.title.errors.0 }}</p>{% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.category.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-1">Category</label>
+                    {{ form.category }}
+                    {% if form.category.errors %}<p class="mt-1 text-sm text-red-600">{{ form.category.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.status.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-1">Status</label>
+                    {{ form.status }}
+                    {% if form.status.errors %}<p class="mt-1 text-sm text-red-600">{{ form.status.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label for="{{ form.featured_image.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-1">Featured Image (Optional)</label>
+                    {{ form.featured_image }}
+                    {% if form.featured_image.errors %}<p class="mt-1 text-sm text-red-600">{{ form.featured_image.errors.0 }}</p>{% endif %}
+                    {% if post and post.featured_image %}
+                    <div class="mt-2">
+                        <img src="{{ post.featured_image.url }}" class="h-32 rounded-lg object-cover">
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label for="blog-content-editor" class="block text-sm font-bold text-gray-700 mb-2">Content</label>
+                    {{ form.content }}
+                    {% if form.content.errors %}<p class="mt-1 text-sm text-red-600">{{ form.content.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+
+            <div class="pt-5 border-t border-gray-200">
+                <div class="flex justify-end">
+                    <button type="submit" class="inline-flex justify-center py-3 px-8 border border-transparent shadow-sm text-base font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-700">
+                        {% if is_edit %}Update Post{% else %}Publish Post{% endif %}
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- TinyMCE Rich Text Editor Integration -->
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+    tinymce.init({
+        selector: '#blog-content-editor',
+        plugins: 'preview importcss searchreplace autolink autosave save directionality code visualblocks visualchars fullscreen image link media template codesample table charmap pagebreak nonbreaking anchor insertdatetime advlist lists wordcount help charmap quickbars emoticons',
+        menubar: 'file edit view insert format tools table help',
+        toolbar: 'undo redo | bold italic underline strikethrough | fontfamily fontsize blocks | alignleft aligncenter alignright alignjustify | outdent indent |  numlist bullist | forecolor backcolor removeformat | pagebreak | charmap emoticons | fullscreen  preview save print | insertfile image media template link anchor codesample | ltr rtl',
+        toolbar_sticky: true,
+        image_advtab: true,
+        height: 600,
+        image_caption: true,
+        quickbars_selection_toolbar: 'bold italic | quicklink h2 h3 blockquote quickimage quicktable',
+        noneditable_class: 'mceNonEditable',
+        toolbar_mode: 'sliding',
+        contextmenu: 'link image table',
+        paste_data_images: true, // Enables pasting images directly as base64
+        content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:16px }'
+    });
+</script>
+{% endblock %}

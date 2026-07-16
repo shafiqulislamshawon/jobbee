@@ -5,13 +5,17 @@ class JobForm(forms.ModelForm):
     class Meta:
         model = Job
         fields = [
-            'title', 'description', 'responsibilities', 'requirements', 
+            'title', 'category', 'description', 'responsibilities', 'requirements', 
             'currency', 'salary_min', 'salary_max', 'employment_type', 'remote_status', 
             'location', 'benefits', 'skills', 'experience', 'education', 'deadline',
             'is_featured'
         ]
         widgets = {
             'deadline': forms.DateInput(attrs={'type': 'date'}),
+            'title': forms.TextInput(attrs={'class': 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm'}),
+            'category': forms.Select(attrs={'class': 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm'}),
+            'description': forms.Textarea(attrs={'class': 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm', 'rows': 4}),
+            'responsibilities': forms.Textarea(attrs={'class': 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm', 'rows': 4}),
         }
 
     def __init__(self, *args, **kwargs):

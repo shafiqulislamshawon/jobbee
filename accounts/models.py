@@ -47,7 +47,7 @@ class EmployerProfile(models.Model):
             avg_rating = sum(r.rating for r in reviews) / len(reviews)
             score += (avg_rating / 5.0) * 15
         
-        if self.user.jobs.count() > 0:
+        if self.user.jobs_posted.count() > 0:
             score += 5
             
         from jobs.models import Application

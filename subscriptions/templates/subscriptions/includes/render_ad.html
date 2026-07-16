@@ -1,0 +1,13 @@
+{% if ad %}
+<a href="{{ ad.target_url }}" target="_blank" rel="noopener noreferrer" class="block w-full h-full overflow-hidden rounded-lg shadow-sm hover:shadow-md transition">
+    <img src="{{ ad.image.url }}" alt="Advertisement" class="w-full h-full object-cover">
+</a>
+{% elif ad_space %}
+<div class="w-full h-full min-h-[100px] flex flex-col items-center justify-center bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg text-center p-4">
+    <span class="text-sm font-semibold text-gray-500 mb-1">Advertise Here</span>
+    <span class="text-xs text-gray-400 mb-2">{{ ad_space.name }} ({{ ad_space.width }}x{{ ad_space.height }})</span>
+    <a href="{% url 'subscriptions:ad_spaces' %}" class="inline-flex items-center px-3 py-1.5 text-xs font-bold rounded bg-blue-50 text-blue-700 hover:bg-blue-100 transition">
+        Rent this space - ৳{{ ad_space.price_per_day|floatformat:0 }}/day
+    </a>
+</div>
+{% endif %}

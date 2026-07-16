@@ -1,46 +1,227 @@
 {% extends 'base.html' %}
 
-{% block title %}Pricing Plans{% endblock %}
+{% block title %}Pricing Plans - {{ site_settings.site_name }}{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="text-center mb-5">
-        <h1 class="display-4 fw-bold">Choose the Right Plan for Your Business</h1>
-        <p class="lead text-muted">Post jobs, access premium features, and hire top talent.</p>
-    </div>
+<div class="bg-gray-50 py-20 min-h-[calc(100vh-200px)]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">Choose the Right Plan for Your Business</h1>
+            <p class="text-xl text-gray-500">Post jobs, access premium features, and hire top talent to grow your team.</p>
+        </div>
 
-    <div class="row row-cols-1 row-cols-md-3 mb-3 text-center">
-        {% for plan in plans %}
-        <div class="col">
-            <div class="card mb-4 rounded-3 shadow-sm {% if forloop.counter == 2 %}border-primary{% endif %}">
-                <div class="card-header py-3 {% if forloop.counter == 2 %}text-white bg-primary border-primary{% endif %}">
-                    <h4 class="my-0 fw-normal">{{ plan.name }}</h4>
-                </div>
-                <div class="card-body">
-                    <h1 class="card-title pricing-card-title">$ {{ plan.price }}<small class="text-muted fw-light">/{{ plan.duration_days }}d</small></h1>
-                    <ul class="list-unstyled mt-3 mb-4">
-                        <li>
-                            {% if plan.job_limit == -1 %}
-                                Unlimited active jobs
-                            {% else %}
-                                {{ plan.job_limit }} active job{% if plan.job_limit > 1 %}s{% endif %}
-                            {% endif %}
-                        </li>
-                        {% if plan.has_banner %}
-                        <li>Company Banner on Profile</li>
-                        {% endif %}
-                        {% if plan.can_feature_jobs %}
-                        <li>Featured Jobs Supported</li>
-                        {% endif %}
-                        {% if plan.has_verification_badge %}
-                        <li>Verified Employer Badge</li>
-                        {% endif %}
-                    </ul>
-                    <a href="{% url 'subscriptions:checkout' plan.id %}" class="w-100 btn btn-lg {% if forloop.counter == 2 %}btn-primary{% else %}btn-outline-primary{% endif %}">Get Started</a>
-                </div>
+        <!-- 1. Top Section: Pricing Cards -->
+        {% include 'subscriptions/includes/pricing_cards.html' %}
+
+        <!-- 2. Second Section: Detailed Comparison Table -->
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-extrabold text-gray-900">Compare Plan Features</h2>
+                <p class="mt-3 text-lg text-gray-500">Find the perfect set of tools for your hiring needs.</p>
+            </div>
+
+            <div class="overflow-x-auto rounded-3xl border border-gray-200 shadow-md bg-white">
+                <table class="w-full text-left border-collapse min-w-[800px]">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="p-6 font-bold text-gray-900 w-1/4 bg-gray-50 align-bottom border-r border-gray-100">
+                                <span class="text-xl">Features</span>
+                            </th>
+                            {% for plan in plans %}
+                            <th class="p-6 w-1/4 text-center align-top {% if forloop.counter == 2 %}bg-blue-50/50 border-x border-blue-200 relative shadow-inner-sides{% else %}bg-white border-r border-gray-100 last:border-r-0{% endif %}">
+                                <h3 class="text-xl font-bold text-gray-900">{{ plan.name }}</h3>
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        
+                        <!-- Best For -->
+                        <tr class="hover:bg-gray-50 transition-colors group">
+                            <td class="p-6 text-sm font-bold text-gray-900 border-r border-gray-100 bg-gray-50/50 group-hover:bg-gray-100/50 transition-colors">Best For</td>
+                            {% for plan in plans %}
+                            <td class="p-6 text-sm text-gray-600 text-center {% if forloop.counter == 2 %}bg-blue-50/30 border-x border-blue-100{% else %}border-r border-gray-100 last:border-r-0{% endif %}">
+                                {{ plan.best_for|default:"—" }}
+                            </td>
+                            {% endfor %}
+                        </tr>
+
+                        <!-- Job Posts -->
+                        <tr class="hover:bg-gray-50 transition-colors group">
+                            <td class="p-6 text-sm font-bold text-gray-900 border-r border-gray-100 bg-gray-50/50 group-hover:bg-gray-100/50 transition-colors">Job Posts</td>
+                            {% for plan in plans %}
+                            <td class="p-6 text-sm text-gray-600 text-center font-medium {% if forloop.counter == 2 %}bg-blue-50/30 border-x border-blue-100{% else %}border-r border-gray-100 last:border-r-0{% endif %}">
+                                {{ plan.job_posts_text|default:"—" }}
+                            </td>
+                            {% endfor %}
+                        </tr>
+
+                        <!-- Applications -->
+                        <tr class="hover:bg-gray-50 transition-colors group">
+                            <td class="p-6 text-sm font-bold text-gray-900 border-r border-gray-100 bg-gray-50/50 group-hover:bg-gray-100/50 transition-colors">Applications</td>
+                            {% for plan in plans %}
+                            <td class="p-6 text-sm text-gray-600 text-center {% if forloop.counter == 2 %}bg-blue-50/30 border-x border-blue-100{% else %}border-r border-gray-100 last:border-r-0{% endif %}">
+                                {{ plan.applications_text|default:"—" }}
+                            </td>
+                            {% endfor %}
+                        </tr>
+
+                        <!-- CV Database Access -->
+                        <tr class="hover:bg-gray-50 transition-colors group">
+                            <td class="p-6 text-sm font-bold text-gray-900 border-r border-gray-100 bg-gray-50/50 group-hover:bg-gray-100/50 transition-colors">CV Database Access</td>
+                            {% for plan in plans %}
+                            <td class="p-6 text-sm text-gray-600 text-center {% if forloop.counter == 2 %}bg-blue-50/30 border-x border-blue-100{% else %}border-r border-gray-100 last:border-r-0{% endif %}">
+                                {{ plan.cv_database_access|default:"—" }}
+                            </td>
+                            {% endfor %}
+                        </tr>
+
+                        <!-- Featured Jobs -->
+                        <tr class="hover:bg-gray-50 transition-colors group">
+                            <td class="p-6 text-sm font-bold text-gray-900 border-r border-gray-100 bg-gray-50/50 group-hover:bg-gray-100/50 transition-colors">Featured Jobs</td>
+                            {% for plan in plans %}
+                            <td class="p-6 text-sm text-gray-600 text-center {% if forloop.counter == 2 %}bg-blue-50/30 border-x border-blue-100{% else %}border-r border-gray-100 last:border-r-0{% endif %}">
+                                {% if plan.featured_jobs_text and plan.featured_jobs_text != "—" %}
+                                    <span class="text-gray-900 font-medium">{{ plan.featured_jobs_text }}</span>
+                                {% else %}
+                                    <span class="text-gray-400 font-bold">—</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+
+                        <!-- Homepage Placement -->
+                        <tr class="hover:bg-gray-50 transition-colors group">
+                            <td class="p-6 text-sm font-bold text-gray-900 border-r border-gray-100 bg-gray-50/50 group-hover:bg-gray-100/50 transition-colors">Homepage Placement</td>
+                            {% for plan in plans %}
+                            <td class="p-6 text-center {% if forloop.counter == 2 %}bg-blue-50/30 border-x border-blue-100{% else %}border-r border-gray-100 last:border-r-0{% endif %}">
+                                {% if plan.homepage_placement %}
+                                    <svg class="h-6 w-6 text-blue-600 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                {% else %}
+                                    <span class="text-gray-300 font-bold">—</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+
+                        <!-- Social Media Promotion -->
+                        <tr class="hover:bg-gray-50 transition-colors group">
+                            <td class="p-6 text-sm font-bold text-gray-900 border-r border-gray-100 bg-gray-50/50 group-hover:bg-gray-100/50 transition-colors">Social Media Promotion</td>
+                            {% for plan in plans %}
+                            <td class="p-6 text-sm text-gray-600 text-center {% if forloop.counter == 2 %}bg-blue-50/30 border-x border-blue-100{% else %}border-r border-gray-100 last:border-r-0{% endif %}">
+                                {% if plan.social_media_promotion and plan.social_media_promotion != "—" %}
+                                    {{ plan.social_media_promotion }}
+                                {% else %}
+                                    <span class="text-gray-300 font-bold">—</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+
+                        <!-- Company Branding -->
+                        <tr class="hover:bg-gray-50 transition-colors group">
+                            <td class="p-6 text-sm font-bold text-gray-900 border-r border-gray-100 bg-gray-50/50 group-hover:bg-gray-100/50 transition-colors">Company Branding</td>
+                            {% for plan in plans %}
+                            <td class="p-6 text-sm text-gray-600 text-center {% if forloop.counter == 2 %}bg-blue-50/30 border-x border-blue-100{% else %}border-r border-gray-100 last:border-r-0{% endif %}">
+                                {{ plan.company_branding|default:"—" }}
+                            </td>
+                            {% endfor %}
+                        </tr>
+
+                        <!-- Analytics Dashboard -->
+                        <tr class="hover:bg-gray-50 transition-colors group">
+                            <td class="p-6 text-sm font-bold text-gray-900 border-r border-gray-100 bg-gray-50/50 group-hover:bg-gray-100/50 transition-colors">Analytics Dashboard</td>
+                            {% for plan in plans %}
+                            <td class="p-6 text-sm text-gray-600 text-center {% if forloop.counter == 2 %}bg-blue-50/30 border-x border-blue-100{% else %}border-r border-gray-100 last:border-r-0{% endif %}">
+                                {{ plan.analytics_dashboard|default:"—" }}
+                            </td>
+                            {% endfor %}
+                        </tr>
+
+                        <!-- Dedicated Account Manager -->
+                        <tr class="hover:bg-gray-50 transition-colors group">
+                            <td class="p-6 text-sm font-bold text-gray-900 border-r border-gray-100 bg-gray-50/50 group-hover:bg-gray-100/50 transition-colors">Dedicated Account Manager</td>
+                            {% for plan in plans %}
+                            <td class="p-6 text-center {% if forloop.counter == 2 %}bg-blue-50/30 border-x border-blue-100{% else %}border-r border-gray-100 last:border-r-0{% endif %}">
+                                {% if plan.dedicated_account_manager %}
+                                    <svg class="h-6 w-6 text-blue-600 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                {% else %}
+                                    <span class="text-gray-300 font-bold">—</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+
+                        <!-- Recruitment Consultation -->
+                        <tr class="hover:bg-gray-50 transition-colors group">
+                            <td class="p-6 text-sm font-bold text-gray-900 border-r border-gray-100 bg-gray-50/50 group-hover:bg-gray-100/50 transition-colors">Recruitment Consultation</td>
+                            {% for plan in plans %}
+                            <td class="p-6 text-center {% if forloop.counter == 2 %}bg-blue-50/30 border-x border-blue-100{% else %}border-r border-gray-100 last:border-r-0{% endif %}">
+                                {% if plan.recruitment_consultation %}
+                                    <svg class="h-6 w-6 text-blue-600 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                {% else %}
+                                    <span class="text-gray-300 font-bold">—</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+
+                        <!-- Priority Customer Support -->
+                        <tr class="hover:bg-gray-50 transition-colors group">
+                            <td class="p-6 text-sm font-bold text-gray-900 border-r border-gray-100 bg-gray-50/50 group-hover:bg-gray-100/50 transition-colors">Customer Support</td>
+                            {% for plan in plans %}
+                            <td class="p-6 text-sm text-gray-600 text-center {% if forloop.counter == 2 %}bg-blue-50/30 border-x border-blue-100{% else %}border-r border-gray-100 last:border-r-0{% endif %}">
+                                {{ plan.priority_customer_support|default:"—" }}
+                            </td>
+                            {% endfor %}
+                        </tr>
+
+                        <!-- Remote & Hybrid Hiring Support -->
+                        <tr class="hover:bg-gray-50 transition-colors group">
+                            <td class="p-6 text-sm font-bold text-gray-900 border-r border-gray-100 bg-gray-50/50 group-hover:bg-gray-100/50 transition-colors">Remote & Hybrid Hiring Support</td>
+                            {% for plan in plans %}
+                            <td class="p-6 text-center {% if forloop.counter == 2 %}bg-blue-50/30 border-x border-blue-100{% else %}border-r border-gray-100 last:border-r-0{% endif %}">
+                                {% if plan.remote_hybrid_support %}
+                                    <svg class="h-6 w-6 text-blue-600 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                {% else %}
+                                    <span class="text-gray-300 font-bold">—</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+
+                        <!-- Custom Hiring Campaigns -->
+                        <tr class="hover:bg-gray-50 transition-colors group">
+                            <td class="p-6 text-sm font-bold text-gray-900 border-r border-gray-100 bg-gray-50/50 rounded-bl-3xl group-hover:bg-gray-100/50 transition-colors">Custom Hiring Campaigns</td>
+                            {% for plan in plans %}
+                            <td class="p-6 text-center {% if forloop.counter == 2 %}bg-blue-50/30 border-x border-blue-100 border-b-0{% else %}border-r border-gray-100 last:border-r-0{% endif %}">
+                                {% if plan.custom_hiring_campaigns %}
+                                    <svg class="h-6 w-6 text-blue-600 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                {% else %}
+                                    <span class="text-gray-300 font-bold">—</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        
+                        <!-- CTA Footer Row -->
+                        <tr>
+                            <td class="p-6 border-r border-gray-100 bg-gray-50/50 rounded-bl-3xl"></td>
+                            {% for plan in plans %}
+                            <td class="p-6 text-center align-middle {% if forloop.counter == 2 %}bg-blue-50/50 border-x border-blue-200 rounded-b-3xl shadow-inner-sides{% else %}border-r border-gray-100 last:border-r-0{% endif %}">
+                                <a href="{% url 'subscriptions:checkout' plan.id %}" class="inline-block w-full py-3 px-4 border border-transparent rounded-xl text-sm font-bold text-center transition-all duration-300 {% if forloop.counter == 2 %}bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:-translate-y-0.5{% else %}bg-blue-50 text-blue-700 hover:bg-blue-100{% endif %}">
+                                    Get Started
+                                </a>
+                            </td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-        {% endfor %}
+        
     </div>
 </div>
 {% endblock %}

@@ -6,6 +6,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Jobbee{% endblock %}</title>
     
+    {% block seo %}
+    <meta name="description" content="{% block meta_description %}Jobbee is the leading job portal for finding remote and hybrid opportunities.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}jobs, remote jobs, career, hiring, Jobbee{% endblock %}">
+    <link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:title" content="{% block og_title %}Jobbee - The leading job portal{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Find the best remote and hybrid jobs on Jobbee.{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo.png' %}{% endblock %}">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ request.build_absolute_uri }}">
+    <meta property="twitter:title" content="{% block twitter_title %}Jobbee - The leading job portal{% endblock %}">
+    <meta property="twitter:description" content="{% block twitter_description %}Find the best remote and hybrid jobs on Jobbee.{% endblock %}">
+    <meta property="twitter:image" content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo.png' %}{% endblock %}">
+    
+    {% block structured_data %}{% endblock %}
+    {% endblock %}
+    
     <!-- Google Fonts: Inter Tight -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -104,21 +126,22 @@
                         </a>
                     </div>
                     <div class="hidden sm:ml-8 sm:flex sm:space-x-8 items-center">
-                        <a href="{% url 'job_list' %}" class="border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">{% trans "Find Jobs" %}</a>
-                        <a href="{% url 'post_list' %}" class="border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">{% trans "Blog" %}</a>
+                        <a href="{% url 'job_list' %}" class="text-gray-500 hover:text-gray-900 text-sm font-bold transition-colors tracking-wide">Find Jobs</a>
+                        <a href="{% url 'post_list' %}" class="text-gray-500 hover:text-gray-900 text-sm font-bold transition-colors tracking-wide">Blog</a>
                         
-                        <form action="{% url 'set_language' %}" method="post" class="ml-4 flex items-center">
+                        <form action="{% url 'set_language' %}" method="post" class="ml-2 relative flex items-center">
                             {% csrf_token %}
                             <input name="next" type="hidden" value="{{ redirect_to }}">
-                            <select name="language" onchange="this.form.submit()" class="text-sm bg-transparent border-gray-300 rounded-md py-1 pl-2 pr-6 focus:ring-accent focus:border-accent">
+                            <select name="language" onchange="this.form.submit()" class="text-sm font-bold text-gray-500 hover:text-gray-900 bg-transparent border-none py-1 pl-2 pr-5 focus:ring-0 cursor-pointer appearance-none outline-none transition-colors tracking-wide uppercase">
                                 {% get_current_language as LANGUAGE_CODE %}
                                 {% get_available_languages as LANGUAGES %}
                                 {% for language in LANGUAGES %}
                                     <option value="{{ language.0 }}" {% if language.0 == LANGUAGE_CODE %}selected{% endif %}>
-                                        {{ language.1 }}
+                                        {{ language.0 }}
                                     </option>
                                 {% endfor %}
                             </select>
+                            <svg class="w-3 h-3 text-gray-400 absolute right-1 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
                         </form>
                     </div>
                 </div>
@@ -133,27 +156,27 @@
                             <span id="notif-badge" class="hidden absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
                         </a>
                         {% if user.is_employer %}
-                            <a href="{% url 'dashboard' %}" class="text-gray-600 hover:text-gray-900 text-sm font-medium">Employer Dashboard</a>
-                            <a href="{% url 'referrals' %}" class="text-gray-600 hover:text-accent text-sm font-medium flex items-center gap-1">
-                                Referrals <span class="bg-blue-100 text-blue-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold">Beta</span>
+                            <a href="{% url 'dashboard' %}" class="text-gray-600 hover:text-gray-900 text-sm font-bold transition-colors">Employer Dashboard</a>
+                            <a href="{% url 'referrals' %}" class="text-gray-600 hover:text-blue-600 text-sm font-bold transition-colors flex items-center gap-1">
+                                Referrals <span class="bg-blue-50 text-blue-600 text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wide">Beta</span>
                             </a>
-                            <a href="#" class="bg-primary text-white hover:bg-gray-800 px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">Post a Job</a>
+                            <a href="#" class="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm">Post a Job</a>
                         {% elif user.is_seeker %}
-                            <a href="{% url 'dashboard' %}" class="text-gray-600 hover:text-gray-900 text-sm font-medium">My Profile</a>
-                            <a href="{% url 'referrals' %}" class="text-gray-600 hover:text-accent text-sm font-medium flex items-center gap-1">
-                                Referrals <span class="bg-blue-100 text-blue-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold">Beta</span>
+                            <a href="{% url 'dashboard' %}" class="text-gray-600 hover:text-gray-900 text-sm font-bold transition-colors">My Profile</a>
+                            <a href="{% url 'referrals' %}" class="text-gray-600 hover:text-blue-600 text-sm font-bold transition-colors flex items-center gap-1">
+                                Referrals <span class="bg-blue-50 text-blue-600 text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wide">Beta</span>
                             </a>
                         {% else %}
-                            <a href="{% url 'frontend_admin' %}" class="text-gray-600 hover:text-gray-900 text-sm font-medium">Admin</a>
+                            <a href="{% url 'frontend_admin' %}" class="text-gray-600 hover:text-gray-900 text-sm font-bold transition-colors">Admin</a>
                         {% endif %}
                         <form method="post" action="{% url 'logout' %}" class="inline">
                             {% csrf_token %}
-                            <button type="submit" class="text-gray-600 hover:text-gray-900 text-sm font-medium">Logout</button>
+                            <button type="submit" class="text-gray-600 hover:text-red-600 text-sm font-bold transition-colors">Logout</button>
                         </form>
                     {% else %}
-                        <a href="{% url 'account_login' %}" class="text-primary hover:text-gray-600 font-medium text-sm transition">Sign in</a>
+                        <a href="{% url 'account_login' %}" class="text-gray-900 hover:text-blue-600 font-bold text-sm transition-colors">Log In</a>
                         <span class="text-gray-300">|</span>
-                        <a href="{% url 'account_signup' %}" class="text-primary hover:text-gray-600 font-medium text-sm transition">Employers / Post Job</a>
+                        <a href="{% url 'account_signup' %}" class="text-gray-900 hover:text-blue-600 font-bold text-sm transition-colors">Employers / Post Job</a>
                     {% endif %}
                 </div>
                 
@@ -216,6 +239,7 @@
     </main>
 
     <!-- Global CTA -->
+    {% block global_cta %}
     <div class="reveal-on-scroll bg-blue-600">
         <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between">
             <h2 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
@@ -237,20 +261,118 @@
             </div>
         </div>
     </div>
+    {% endblock %}
 
     <!-- Footer -->
-    <footer class="reveal-on-scroll bg-white border-t border-gray-200 mt-auto py-8">
+    <footer class="bg-white border-t border-gray-100 pt-16 pb-24 mt-auto">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="md:flex md:items-center md:justify-between">
-                <div class="flex justify-center md:justify-start space-x-6 md:order-2 text-sm text-gray-500">
-                    <a href="{% url 'privacy' %}" class="hover:text-gray-900 transition">Privacy Policy</a>
-                    <a href="{% url 'terms' %}" class="hover:text-gray-900 transition">Terms of Service</a>
-                    <a href="{% url 'help' %}" class="hover:text-gray-900 transition">Help Center</a>
-                </div>
-                <div class="mt-8 md:mt-0 md:order-1">
-                    <p class="text-center md:text-left text-sm text-gray-500">
-                        &copy; {% now "Y" %} Jobbee. All rights reserved.
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 mb-12">
+                
+                <!-- Logo & Description (takes up more space) -->
+                <div class="lg:col-span-2 pr-8">
+                    <a href="/" class="block mb-4">
+                        <img src="{% static 'logo.png' %}" alt="JobBee" class="h-8 w-auto">
+                    </a>
+                    <p class="text-sm text-gray-500 mb-6 max-w-xs">
+                        The premium hiring infrastructure for top-tier engineers, designers and innovators worldwide.
                     </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-gray-900 transition-colors">
+                            <span class="sr-only">Twitter</span>
+                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"/></svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-gray-900 transition-colors">
+                            <span class="sr-only">LinkedIn</span>
+                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-gray-900 transition-colors">
+                            <span class="sr-only">Pinterest</span>
+                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.951-7.252 4.182 0 7.424 2.979 7.424 6.942 0 4.156-2.617 7.502-6.257 7.502-1.222 0-2.373-.635-2.766-1.385l-.752 2.87c-.272 1.037-.999 2.333-1.492 3.125 1.111.341 2.298.523 3.526.523 6.627 0 11.987-5.365 11.987-11.987C24.004 5.367 18.638 0 12.017 0z"/></svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-gray-900 transition-colors">
+                            <span class="sr-only">Instagram</span>
+                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Column 1 -->
+                <div>
+                    <h4 class="text-sm font-bold text-gray-900 mb-4 tracking-wide">For Candidates</h4>
+                    <ul class="space-y-3">
+                        <li><a href="{% url 'job_list' %}" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">Browse Jobs</a></li>
+                        <li><a href="#" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">Resume Builder</a></li>
+                        <li><a href="#" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">Career Advice</a></li>
+                        <li><a href="{% url 'account_signup' %}" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">Create Account</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 2 -->
+                <div>
+                    <h4 class="text-sm font-bold text-gray-900 mb-4 tracking-wide">For Employers</h4>
+                    <ul class="space-y-3">
+                        <li><a href="{% url 'post_job' %}" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">Post a Job</a></li>
+                        <li><a href="{% url 'subscriptions:pricing' %}" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">Pricing</a></li>
+                        <li><a href="#" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">Employer Resources</a></li>
+                        <li><a href="#" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">Contact Sales</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 3 -->
+                <div>
+                    <h4 class="text-sm font-bold text-gray-900 mb-4 tracking-wide">Company</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">About Us</a></li>
+                        <li><a href="{% url 'post_list' %}" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">Blog</a></li>
+                        <li><a href="#" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">Careers</a></li>
+                        <li><a href="#" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">Press</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 4 -->
+                <div>
+                    <h4 class="text-sm font-bold text-gray-900 mb-4 tracking-wide">Support</h4>
+                    <ul class="space-y-3">
+                        <li><a href="{% url 'help' %}" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">Help Center</a></li>
+                        <li><a href="{% url 'privacy' %}" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">Privacy Policy</a></li>
+                        <li><a href="{% url 'terms' %}" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">Terms of Service</a></li>
+                        <li><a href="#" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mb-12 border-t border-gray-100 pt-8 flex justify-center">
+                <div class="w-full max-w-md text-center">
+                    <h4 class="text-sm font-bold text-gray-900 mb-2 tracking-wide">Subscribe to our newsletter</h4>
+                    <p class="text-sm text-gray-500 mb-4">Get the latest jobs and career tips delivered to your inbox.</p>
+                    <form class="flex" action="#" method="POST">
+                        <input
+                            type="email"
+                            placeholder="Enter your email"
+                            class="flex-1 bg-white border border-gray-200 text-gray-900 text-sm rounded-l-lg px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        >
+                        <button
+                            type="submit"
+                            class="bg-blue-600 border-y border-r border-blue-600 text-white px-5 rounded-r-lg hover:bg-blue-700 transition-colors"
+                        >
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Bottom Bar -->
+            <div class="border-t border-gray-100 pt-8 flex flex-col md:flex-row md:items-center md:justify-between">
+                <p class="text-xs text-gray-400 mb-4 md:mb-0">
+                    &copy; {% now "Y" %} JobBee. All rights reserved.
+                </p>
+                <div class="flex space-x-6 text-xs text-gray-500">
+                    <a href="{% url 'privacy' %}" class="hover:text-gray-900 transition-colors">Privacy Policy</a>
+                    <a href="{% url 'terms' %}" class="hover:text-gray-900 transition-colors">Terms of Service</a>
+                    <a href="#" class="hover:text-gray-900 transition-colors">Cookies Settings</a>
                 </div>
             </div>
         </div>

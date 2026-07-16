@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Book Ad Space - {{ space.name }} - Jobbee{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="mb-8">
+        <a href="{% url 'subscriptions:ad_spaces' %}" class="text-sm font-medium text-blue-600 hover:text-blue-500 mb-4 inline-block">&larr; Back to Ad Spaces</a>
+        <h1 class="text-3xl font-extrabold text-gray-900">Book {{ space.name }}</h1>
+        <p class="mt-2 text-sm text-gray-600">Provide your advertisement creative and select your campaign dates.</p>
+    </div>
+
+    <div class="bg-white shadow sm:rounded-xl overflow-hidden border border-gray-200">
+        <div class="bg-blue-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Space Details</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Dimensions: {{ space.width }}x{{ space.height }} pixels</p>
+            </div>
+            <div class="text-right">
+                <span class="text-2xl font-bold text-primary">৳{{ space.price_per_day|floatformat:0 }}</span>
+                <span class="text-sm text-gray-500">/day</span>
+            </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="px-6 py-8" x-data="adBooking({{ space.price_per_day|floatformat:0 }})">
+            {% csrf_token %}
+            
+            <div class="space-y-6">
+                <div>
+                    <label for="{{ form.image.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-1">Upload Banner Image</label>
+                    <p class="text-xs text-gray-500 mb-2">Must be exactly {{ space.width }}x{{ space.height }} or proportional.</p>
+                    {{ form.image }}
+                    {% if form.image.errors %}<p class="mt-1 text-sm text-red-600">{{ form.image.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.target_url.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-1">Target URL</label>
+                    <p class="text-xs text-gray-500 mb-2">Where users go when they click your ad.</p>
+                    {{ form.target_url }}
+                    {% if form.target_url.errors %}<p class="mt-1 text-sm text-red-600">{{ form.target_url.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.start_date.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-1">Start Date</label>
+                        {{ form.start_date|attr:"x-model:startDate"|attr:"@change:calculateTotal()" }}
+                        {% if form.start_date.errors %}<p class="mt-1 text-sm text-red-600">{{ form.start_date.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.end_date.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-1">End Date</label>
+                        {{ form.end_date|attr:"x-model:endDate"|attr:"@change:calculateTotal()" }}
+                        {% if form.end_date.errors %}<p class="mt-1 text-sm text-red-600">{{ form.end_date.errors.0 }}</p>{% endif %}
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 flex justify-between items-center" x-show="days > 0" x-cloak>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Duration: <span x-text="days" class="font-bold text-gray-900"></span> days</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm text-gray-500">Total Price</p>
+                        <p class="text-2xl font-bold text-primary">৳<span x-text="total"></span></p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-8 pt-5 border-t border-gray-200 flex justify-end">
+                <button type="submit" class="inline-flex justify-center py-3 px-8 border border-transparent shadow-sm text-base font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-700 transition">
+                    Submit Booking Request
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('adBooking', (pricePerDay) => ({
+        startDate: '',
+        endDate: '',
+        days: 0,
+        total: 0,
+        calculateTotal() {
+            if (this.startDate && this.endDate) {
+                const start = new Date(this.startDate);
+                const end = new Date(this.endDate);
+                const diffTime = end - start;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                
+                if (diffDays >= 0) {
+                    this.days = diffDays === 0 ? 1 : diffDays; // Minimum 1 day
+                    this.total = (this.days * pricePerDay).toFixed(0);
+                } else {
+                    this.days = 0;
+                    this.total = 0;
+                }
+            }
+        }
+    }))
+})
+</script>
+{% endblock %}
