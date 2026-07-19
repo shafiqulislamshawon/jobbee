@@ -261,17 +261,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const counters = document.querySelectorAll(".counter-value");
     const speed = 50; 
 
-    const animate = (counter) => {
-        const updateCount = () => {
-            const target = +counter.getAttribute("data-target");
-            const count = +counter.innerText;
-            const inc = target / speed;
+    const formatNumber = (num) => {
+        if (num >= 1000000) {
+            return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+        }
+        if (num >= 1000) {
+            return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+        }
+        return num;
+    };
 
+    const animate = (counter) => {
+        const target = +counter.getAttribute("data-target");
+        let count = 0;
+        const inc = target / speed;
+
+        const updateCount = () => {
             if (count < target) {
-                counter.innerText = Math.ceil(count + inc);
+                count = Math.min(target, count + inc);
+                counter.innerText = formatNumber(Math.ceil(count));
                 setTimeout(updateCount, 20);
             } else {
-                counter.innerText = target;
+                counter.innerText = formatNumber(target);
             }
         };
 
@@ -312,7 +323,7 @@ document.addEventListener("DOMContentLoaded", () => {
             {% endfor %}
         </div>
         
-        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-4">
+        <div class="flex flex-wrap items-center justify-center gap-4">
             {% if categories|length > 15 %}
             <button id="show-more-categories" class="inline-flex items-center text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors bg-gray-100 px-4 py-2 rounded-full hover:bg-gray-200">
                 Show More Categories
@@ -367,7 +378,7 @@ document.addEventListener("DOMContentLoaded", function() {
             {% endfor %}
         </div>
         
-        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-4">
+        <div class="flex flex-wrap items-center justify-center gap-4">
             {% if trending_companies|length > 15 %}
             <button id="show-more-companies" class="inline-flex items-center text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors bg-white border border-gray-200 px-4 py-2 rounded-full shadow-sm hover:bg-gray-50">
                 Show More Companies
