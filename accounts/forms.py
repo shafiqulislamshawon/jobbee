@@ -13,6 +13,38 @@ class CustomUserCreationForm(UserCreationForm):
         model = User
         fields = ('username', 'email',)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Add required attribute to email
+        self.fields['email'].required = True
+        
+        for field_name, field in self.fields.items():
+            if field_name != 'role':
+                # Base Tailwind classes for premium input styling
+                base_classes = (
+                    'appearance-none block w-full px-4 py-3 '
+                    'bg-gray-50 border border-gray-200 text-gray-900 rounded-lg '
+                    'focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent '
+                    'transition-all duration-200 ease-in-out sm:text-sm'
+                )
+                
+                # Add validation attributes
+                attrs = {'class': base_classes, 'required': 'required'}
+                
+                if field_name == 'username':
+                    attrs['minlength'] = '3'
+                    attrs['placeholder'] = 'Choose a username'
+                elif field_name == 'email':
+                    attrs['type'] = 'email'
+                    attrs['placeholder'] = 'you@example.com'
+                elif 'password' in field_name:
+                    attrs['minlength'] = '8'
+                    attrs['placeholder'] = '••••••••'
+                    
+                field.widget.attrs.update(attrs)
+
+
     def save(self, commit=True):
         user = super().save(commit=False)
         role = self.cleaned_data.get('role')

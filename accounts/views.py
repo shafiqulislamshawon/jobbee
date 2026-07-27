@@ -38,11 +38,47 @@ def register(request):
                 except Exception:
                     pass
                     
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             return redirect('home')
     else:
         form = CustomUserCreationForm()
     return render(request, 'accounts/register.html', {'form': form})
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
+
+@require_GET
+def check_availability(request):
+    username = request.GET.get('username', None)
+    email = request.GET.get('email', None)
+    
+    response_data = {'available': True, 'message': ''}
+    
+    if username:
+        if User.objects.filter(username__iexact=username).exists():
+            response_data = {'available': False, 'message': 'Username is already taken.'}
+            
+    if email:
+        if User.objects.filter(email__iexact=email).exists():
+            response_data = {'available': False, 'message': 'Email is already associated with an account.'}
+            
+    return JsonResponse(response_data)
+
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+@require_POST
+def set_social_role(request):
+    try:
+        data = json.loads(request.body)
+        role = data.get('role')
+        if role in ['seeker', 'employer']:
+            request.session['social_role'] = role
+            return JsonResponse({'status': 'success'})
+        return JsonResponse({'status': 'error', 'message': 'Invalid role'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 @login_required
 def dashboard(request):
@@ -400,3 +436,90 @@ def manage_recruiters(request):
         
     return render(request, 'accounts/manage_recruiters.html', {'seats': seats})
 
+import json
+import stripe
+from django.conf import settings
+from django.urls import reverse
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+@login_required
+def wallet_topup(request):
+    if not getattr(request.user, 'is_employer', False):
+        messages.error(request, "Only employers can top up their wallet.")
+        return redirect('dashboard')
+    
+    return render(request, 'accounts/wallet_topup.html', {
+        'stripe_public_key': settings.STRIPE_PUBLIC_KEY
+    })
+
+@login_required
+@require_POST
+def create_stripe_checkout(request):
+    if not getattr(request.user, 'is_employer', False):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+        
+    try:
+        data = json.loads(request.body)
+        amount = int(data.get('amount', 0))
+        
+        if amount < 10:
+            return JsonResponse({'error': 'Minimum top-up is $10'}, status=400)
+            
+        domain_url = request.build_absolute_uri('/')[:-1]
+        
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[
+                {
+                    'price_data': {
+                        'currency': 'usd',
+                        'unit_amount': amount * 100,
+                        'product_data': {
+                            'name': 'Wallet Top-up (Credits)',
+                            'description': f'Top up your Jobbee wallet with ${amount} credits.',
+                        },
+                    },
+                    'quantity': 1,
+                },
+            ],
+            mode='payment',
+            success_url=domain_url + reverse('stripe_topup_success') + '?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=domain_url + reverse('stripe_topup_cancel'),
+            metadata={
+                'user_id': request.user.id,
+                'amount': amount
+            }
+        )
+        return JsonResponse({'id': checkout_session.id})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+@login_required
+def stripe_topup_success(request):
+    session_id = request.GET.get('session_id')
+    if not session_id:
+        return redirect('wallet_topup')
+        
+    try:
+        session = stripe.checkout.Session.retrieve(session_id)
+        if session.payment_status == 'paid':
+            amount = int(session.metadata.amount)
+            user_id = int(session.metadata.user_id)
+            
+            if request.user.id == user_id:
+                profile = request.user.employer_profile
+                profile.credits += amount
+                profile.save()
+                messages.success(request, f"Successfully topped up your wallet with ${amount}!")
+    except Exception as e:
+        messages.error(request, f"Error processing payment: {str(e)}")
+        
+    return redirect('dashboard')
+
+@login_required
+def stripe_topup_cancel(request):
+    messages.warning(request, "Wallet top-up was cancelled.")
+    return redirect('wallet_topup')

@@ -166,23 +166,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Social Account Providers dummy config to prevent template DoesNotExist errors
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'APP': {
-            'client_id': 'dummy',
-            'secret': 'dummy',
-            'key': ''
-        }
-    },
-    'linkedin_oauth2': {
-        'APP': {
-            'client_id': 'dummy',
-            'secret': 'dummy',
-            'key': ''
-        }
-    }
-}
+
 
 LOGGING = {
     'version': 1,
@@ -218,8 +202,8 @@ CACHES = {
 }
 
 # Stripe Configuration
-STRIPE_PUBLIC_KEY = 'pk_test_placeholder'
-STRIPE_SECRET_KEY = 'sk_test_placeholder'
+STRIPE_PUBLIC_KEY = 'pk_test_51TxmldIs5ztZaVHhe081TrvTTmQ80mvtAaFGXhMI8g76JK2sGDLG20k9GFd6exxrB2LQ52GGnUnYgHQS05vHhJg5004EMnAL9e'
+STRIPE_SECRET_KEY = 'sk_test_51TxmldIs5ztZaVHhbECXhTeyfnuR7uFF9uaXgXQqFgVFMK1pZeJtNzn7kXbpVIQokhGffjvtXjIEZKqKfYA685jL006YuXWkyO'
 STRIPE_WEBHOOK_SECRET = 'whsec_placeholder'
 
 
@@ -235,11 +219,17 @@ AUTHENTICATION_BACKENDS = [
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_ADAPTER = 'accounts.adapters.CustomSocialAccountAdapter'
 LOGIN_REDIRECT_URL = '/accounts/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
+        'APP': {
+            'client_id': os.environ.get('GOOGLE_CLIENT_ID', 'dummy'),
+            'secret': os.environ.get('GOOGLE_CLIENT_SECRET', 'dummy'),
+            'key': ''
+        },
         'SCOPE': [
             'profile',
             'email',
@@ -249,6 +239,11 @@ SOCIALACCOUNT_PROVIDERS = {
         }
     },
     'linkedin_oauth2': {
+        'APP': {
+            'client_id': os.environ.get('LINKEDIN_CLIENT_ID', 'dummy'),
+            'secret': os.environ.get('LINKEDIN_CLIENT_SECRET', 'dummy'),
+            'key': ''
+        },
         'SCOPE': [
             'r_liteprofile',
             'r_emailaddress'
@@ -267,4 +262,6 @@ SOCIALACCOUNT_PROVIDERS = {
 # Email Backend (Console for Development)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# Sentry APM removed as per user skip
+# Stripe Settings
+STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
