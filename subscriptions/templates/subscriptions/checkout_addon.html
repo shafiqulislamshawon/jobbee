@@ -23,17 +23,33 @@
                 
                 <hr class="border-gray-200 mb-6">
                 
-                <div class="flex justify-between items-center text-lg font-bold text-gray-900 mb-8">
-                    <span>Total due today</span>
-                    <span>{{ addon.price|currency }}</span>
-                </div>
-                
-                <div class="mb-8 space-y-4">
+                <div class="mb-6 space-y-4">
+                    <!-- Coupon Section -->
+                    <div class="mt-4">
+                        <div class="flex space-x-2">
+                            <input type="text" id="coupon_input" placeholder="Have a coupon code?" class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            <button type="button" id="apply_coupon_btn" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-gray-900 hover:bg-gray-800 focus:outline-none">
+                                Apply
+                            </button>
+                        </div>
+                        <p id="coupon_message" class="mt-2 text-sm hidden"></p>
+                    </div>
+
+                    <div id="discount-row" class="flex justify-between items-center hidden mb-2">
+                        <span class="text-green-600 font-medium">Discount</span>
+                        <span id="discount-amount" class="text-green-600 font-bold">-৳0.00</span>
+                    </div>
+
+                    <div class="flex justify-between items-center text-lg font-bold text-gray-900 mb-8 mt-2 pt-2 border-t border-gray-200">
+                        <span>Total due today</span>
+                        <span id="final-total">{{ addon.price|currency }}</span>
+                    </div>
+
                     <label class="flex items-center p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition border-blue-500 bg-blue-50 relative">
                         <input type="radio" name="payment_method" value="wallet" checked class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500" onchange="document.getElementById('use_wallet').value='true'">
                         <div class="ml-3">
                             <span class="block text-sm font-bold text-gray-900">Wallet Balance ({{ request.user.employer_profile.credits|currency }})</span>
-                            <span class="block text-xs text-gray-500">
+                            <span class="block text-xs text-gray-500" id="wallet-warning-span">
                                 {% if request.user.employer_profile.credits >= addon.price %}
                                     <span class="text-green-600">Sufficient balance</span>
                                 {% else %}
@@ -47,6 +63,7 @@
                 <form action="{% url 'subscriptions:process_addon_checkout' addon.id %}" method="POST">
                     {% csrf_token %}
                     <input type="hidden" name="use_wallet" id="use_wallet" value="true">
+                    <input type="hidden" name="coupon_code" id="form_coupon_code" value="">
                     <button type="submit" class="w-full inline-flex justify-center items-center px-6 py-4 border border-transparent text-base font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         Confirm Purchase & Activate
                     </button>
@@ -58,4 +75,74 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const applyBtn = document.getElementById('apply_coupon_btn');
+    const couponInput = document.getElementById('coupon_input');
+    const couponMsg = document.getElementById('coupon_message');
+    const formCoupon = document.getElementById('form_coupon_code');
+    const discountRow = document.getElementById('discount-row');
+    const discountAmountElem = document.getElementById('discount-amount');
+    const finalTotalElem = document.getElementById('final-total');
+    const basePrice = {{ addon.price }};
+    const walletBalance = {{ request.user.employer_profile.credits|default:0 }};
+    
+    const updateWalletWarning = (finalPrice) => {
+        const warningSpan = document.getElementById('wallet-warning-span');
+        if (!warningSpan) return;
+        if (walletBalance >= finalPrice) {
+            warningSpan.innerHTML = '<span class="text-green-600">Sufficient balance</span>';
+        } else {
+            warningSpan.innerHTML = '<span class="text-red-500">Insufficient balance</span>';
+        }
+    };
+    
+    applyBtn.addEventListener('click', async function() {
+        const code = couponInput.value.trim();
+        if (!code) return;
+        
+        applyBtn.disabled = true;
+        applyBtn.innerText = '...';
+        
+        try {
+            const res = await fetch("{% url 'subscriptions:validate_coupon' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ code: code, total: basePrice })
+            });
+            const data = await res.json();
+            
+            couponMsg.classList.remove('hidden');
+            if (data.valid) {
+                couponMsg.className = 'mt-2 text-sm text-green-600 font-medium';
+                couponMsg.innerText = data.message;
+                
+                discountRow.classList.remove('hidden');
+                discountAmountElem.innerText = '-৳' + parseFloat(data.discount_amount).toFixed(2);
+                finalTotalElem.innerText = '৳' + parseFloat(data.final_total).toFixed(2);
+                
+                formCoupon.value = code;
+                updateWalletWarning(parseFloat(data.final_total));
+            } else {
+                couponMsg.className = 'mt-2 text-sm text-red-600 font-medium';
+                couponMsg.innerText = data.message;
+                
+                discountRow.classList.add('hidden');
+                finalTotalElem.innerText = '৳' + parseFloat(basePrice).toFixed(2);
+                formCoupon.value = '';
+                updateWalletWarning(basePrice);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            applyBtn.disabled = false;
+            applyBtn.innerText = 'Apply';
+        }
+    });
+});
+</script>
 {% endblock %}

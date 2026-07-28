@@ -63,9 +63,15 @@
                             </button>
                         </form>
                         {% else %}
-                        <a href="{% url 'buy_template' template.id %}" class="block w-full text-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
-                            Buy for {{ template.price|currency }}
-                        </a>
+                        <form method="POST" action="{% url 'buy_template' template.id %}" class="space-y-2">
+                            {% csrf_token %}
+                            <div class="relative">
+                                <input type="text" name="coupon_code" placeholder="Coupon Code" class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-center uppercase text-xs" />
+                            </div>
+                            <button type="submit" class="w-full text-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
+                                Buy for {{ template.price|currency }}
+                            </button>
+                        </form>
                         {% endif %}
                     </div>
                 </div>

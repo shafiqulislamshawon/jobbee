@@ -107,6 +107,11 @@
                 <p class="text-sm text-gray-500 mb-1">Phone</p>
                 <p class="text-sm text-gray-900 font-medium">{{ request.user.seeker_profile.phone_number|default:"<span class='text-gray-400 italic'>Not provided</span>"|safe }}</p>
             </div>
+            
+            <div>
+                <p class="text-sm text-gray-500 mb-1">Alternative Phone</p>
+                <p class="text-sm text-gray-900 font-medium">{{ request.user.seeker_profile.alternative_phone|default:"<span class='text-gray-400 italic'>Not provided</span>"|safe }}</p>
+            </div>
 
             <div>
                 <p class="text-sm text-gray-500 mb-1">Address</p>
@@ -145,19 +150,33 @@
                 <p class="text-sm text-gray-900">{{ request.user.seeker_profile.skills|default:"<span class='text-gray-400 italic'>No skills added</span>"|safe }}</p>
             </div>
             
-            <div class="lg:col-span-4">
+        </div>
+    </div>
+
+    <!-- Additional Information Section -->
+    <div class="bg-white shadow-sm sm:rounded-lg border border-gray-200 mb-8 p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Additional Information</h3>
+            <div class="flex gap-3">
+                <a href="{% url 'edit_additional_info' %}" class="text-sm font-medium text-accent hover:underline py-1.5">Edit Additional Info</a>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 gap-6">
+            <div class="lg:col-span-1">
                 <p class="text-sm text-gray-500 mb-1">Languages</p>
                 <p class="text-sm text-gray-900">{{ request.user.seeker_profile.languages|default:"<span class='text-gray-400 italic'>No languages added</span>"|safe }}</p>
             </div>
-
-            <div class="lg:col-span-4">
+            
+            <div class="lg:col-span-1">
                 <p class="text-sm text-gray-500 mb-1">Extracurricular Activities</p>
                 <p class="text-sm text-gray-900 whitespace-pre-wrap">{{ request.user.seeker_profile.extracurricular_activities|default:"<span class='text-gray-400 italic'>No extracurricular activities added</span>"|safe }}</p>
             </div>
         </div>
+    </div>
 
-        <hr class="my-6 border-gray-100">
-
+    <!-- Career Info Section (Education, Experience, etc.) -->
+    <div class="bg-white shadow-sm sm:rounded-lg border border-gray-200 mb-8 p-6">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
             <!-- Education -->
             <div>
@@ -170,6 +189,9 @@
                         <p class="text-sm font-bold text-gray-900">{{ edu.degree }}{% if edu.field_of_study %} in {{ edu.field_of_study }}{% endif %}</p>
                         <p class="text-sm text-gray-600">{{ edu.institution }}</p>
                         <p class="text-xs text-gray-500">{{ edu.start_date|date:"Y" }} - {% if edu.end_date %}{{ edu.end_date|date:"Y" }}{% else %}Present{% endif %}</p>
+                        {% if edu.grade_value and edu.grading_system %}
+                        <p class="text-xs text-gray-500 font-medium">{{ edu.get_grading_system_display }}: {{ edu.grade_value }}</p>
+                        {% endif %}
                     </div>
                 {% empty %}
                     <p class="text-sm text-gray-400">No education added.</p>

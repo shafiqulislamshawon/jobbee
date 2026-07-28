@@ -62,14 +62,21 @@
         <div class="flex items-start justify-between">
             <div>
                 <h1 class="text-3xl font-extrabold text-primary mb-2">{{ job.title }}</h1>
-                <a href="{% url 'company_detail' job.employer.employer_profile.id %}" class="text-lg font-medium text-accent hover:underline mb-6 flex items-center w-fit">
-                    {{ job.employer.employer_profile.company_name|default:job.employer.username }}
-                    {% if job.employer.employer_profile.is_verified %}
-                    <svg class="h-5 w-5 text-blue-500 ml-1" fill="currentColor" viewBox="0 0 20 20" title="Verified Employer">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                    </svg>
+                <div class="flex items-center gap-4 mb-6">
+                    <a href="{% url 'company_detail' job.employer.employer_profile.id %}" class="text-lg font-medium text-accent hover:underline flex items-center">
+                        {{ job.employer.employer_profile.company_name|default:job.employer.username }}
+                        {% if job.employer.employer_profile.is_verified %}
+                        <svg class="h-5 w-5 text-blue-500 ml-1" fill="currentColor" viewBox="0 0 20 20" title="Verified Employer">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        {% endif %}
+                    </a>
+                    {% if request.user.is_authenticated and request.user.is_seeker %}
+                        <button onclick="toggleFollow({{ job.employer.employer_profile.id }})" id="followBtn-{{ job.employer.employer_profile.id }}" class="px-3 py-1 text-sm font-medium rounded-full border border-accent text-accent hover:bg-accent hover:text-white transition">
+                            Follow
+                        </button>
                     {% endif %}
-                </a>
+                </div>
 
                 {% if job.employer.employer_profile.is_verified %}
                 <div class="mt-2 flex items-center bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-xs font-medium w-fit">
@@ -93,7 +100,13 @@
                         <svg class="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         </svg>
-                        {{ job.location|default:"Remote" }}
+                        {{ job.location|default:"Anywhere" }}
+                    </span>
+                    <span class="flex items-center">
+                        <svg class="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {{ job.get_remote_status_display }}
                     </span>
                     <span class="flex items-center">
                         <svg class="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -102,12 +115,26 @@
                         {{ job.get_employment_type_display }}
                     </span>
                     {% if job.salary_min %}
-                    <div class="flex items-center text-gray-700">
-                        <svg class="h-5 w-5 mr-3 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <span class="flex items-center text-gray-700">
+                        <svg class="h-5 w-5 mr-2 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         {{ job.salary_min|currency }} {% if job.salary_max %} - {{ job.salary_max|currency }}{% endif %}
-                    </div>
+                    </span>
+                    {% endif %}
+                    <span class="flex items-center">
+                        <svg class="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Posted {{ job.created_at|date:"M d, Y" }}
+                    </span>
+                    {% if job.deadline %}
+                    <span class="flex items-center text-red-600 font-medium">
+                        <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Deadline: {{ job.deadline|date:"M d, Y" }}
+                    </span>
                     {% endif %}
                 </div>
             </div>
@@ -169,6 +196,80 @@
             <div class="prose prose-gray max-w-none text-gray-700 whitespace-pre-wrap">{{ job.requirements }}</div>
         </div>
         {% endif %}
+        
+        {% if job.benefits %}
+        <div>
+            <h2 class="text-xl font-bold text-primary mb-4">Benefits</h2>
+            <div class="prose prose-gray max-w-none text-gray-700 whitespace-pre-wrap">{{ job.benefits }}</div>
+        </div>
+        {% endif %}
+
+        {% if job.skills or job.experience or job.education %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-gray-100 pt-8 mt-8">
+            {% if job.skills %}
+            <div>
+                <h2 class="text-xl font-bold text-primary mb-4">Skills Required</h2>
+                <div class="text-gray-700">
+                    {{ job.skills }}
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="space-y-6">
+                {% if job.experience %}
+                <div>
+                    <h2 class="text-xl font-bold text-primary mb-2">Experience Level</h2>
+                    <p class="text-gray-700">{{ job.experience }}</p>
+                </div>
+                {% endif %}
+                
+                {% if job.education %}
+                <div>
+                    <h2 class="text-xl font-bold text-primary mb-2">Education Level</h2>
+                    <p class="text-gray-700">{{ job.education }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
+
+{% if request.user.is_authenticated and request.user.is_seeker %}
+<script>
+function toggleFollow(employerId) {
+    fetch(`/accounts/employer/${employerId}/follow/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            const btn = document.getElementById(`followBtn-${employerId}`);
+            if (data.is_following) {
+                btn.textContent = 'Unfollow';
+                btn.classList.replace('text-accent', 'text-white');
+                btn.classList.replace('border-accent', 'border-gray-500');
+                btn.classList.replace('hover:bg-accent', 'bg-gray-500');
+                btn.classList.replace('hover:text-white', 'hover:bg-gray-600');
+            } else {
+                btn.textContent = 'Follow';
+                btn.classList.replace('text-white', 'text-accent');
+                btn.classList.replace('border-gray-500', 'border-accent');
+                btn.classList.replace('bg-gray-500', 'hover:bg-accent');
+                btn.classList.replace('hover:bg-gray-600', 'hover:text-white');
+            }
+        }
+    });
+}
+
+// Initial state load
+document.addEventListener('DOMContentLoaded', () => {
+    // You could optionally fetch the initial state here if it wasn't passed from the view
+});
+</script>
+{% endif %}
 {% endblock %}

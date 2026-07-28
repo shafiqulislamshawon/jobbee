@@ -209,6 +209,24 @@ def edit_profile(request):
     return render(request, 'accounts/form_page.html', {'form': form, 'title': 'Edit Profile'})
 
 @login_required
+def edit_additional_info(request):
+    if not getattr(request.user, 'is_seeker', False):
+        return redirect('dashboard')
+        
+    profile = request.user.seeker_profile
+    from .forms import SeekerAdditionalInfoForm
+    
+    if request.method == 'POST':
+        form = SeekerAdditionalInfoForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Additional info updated successfully!')
+            return redirect('dashboard')
+    else:
+        form = SeekerAdditionalInfoForm(instance=profile)
+        
+    return render(request, 'accounts/form_page.html', {'form': form, 'title': 'Edit Additional Information'})
+@login_required
 def add_education(request):
     if not getattr(request.user, 'is_seeker', False):
         return redirect('dashboard')
@@ -289,10 +307,22 @@ def resume_builder(request):
 
 @login_required
 def export_resume_pdf(request):
-    if not getattr(request.user, 'is_seeker', False):
-        return redirect('dashboard')
-        
-    profile = request.user.seeker_profile
+    applicant_id = request.GET.get('applicant_id')
+    if applicant_id:
+        if not getattr(request.user, 'is_employer', False):
+            return redirect('dashboard')
+        from jobs.models import Application
+        from .models import User
+        has_applied = Application.objects.filter(job__employer=request.user, applicant_id=applicant_id).exists()
+        if not has_applied:
+            return redirect('dashboard')
+        target_user = get_object_or_404(User, id=applicant_id)
+        profile = target_user.seeker_profile
+    else:
+        if not getattr(request.user, 'is_seeker', False):
+            return redirect('dashboard')
+        target_user = request.user
+        profile = request.user.seeker_profile
     from .models import ResumeTemplate
     
     preview_template_id = request.GET.get('template_id')
@@ -310,13 +340,13 @@ def export_resume_pdf(request):
     from django.http import HttpResponse
     from xhtml2pdf import pisa
     
-    html_string = render_to_string(template_path, {'profile': profile, 'user': request.user})
+    html_string = render_to_string(template_path, {'profile': profile, 'user': target_user})
     response = HttpResponse(content_type='application/pdf')
     
     if request.GET.get('preview') == 'true':
-        response['Content-Disposition'] = f'inline; filename="resume_{request.user.username}.pdf"'
+        response['Content-Disposition'] = f'inline; filename="resume_{target_user.username}.pdf"'
     else:
-        response['Content-Disposition'] = f'attachment; filename="resume_{request.user.username}.pdf"'
+        response['Content-Disposition'] = f'attachment; filename="resume_{target_user.username}.pdf"'
     
     pisa_status = pisa.CreatePDF(html_string, dest=response)
     if pisa_status.err:
@@ -359,8 +389,40 @@ def buy_template(request, template_id):
         return redirect('template_gallery')
         
     profile = request.user.seeker_profile
-    if profile.wallet_balance >= template.price:
-        profile.wallet_balance -= template.price
+    
+    final_price = float(template.price)
+    discount_amount = 0.0
+    applied_coupon = None
+    
+    coupon_code = request.POST.get('coupon_code')
+    if coupon_code:
+        from subscriptions.models import Coupon, CouponUsage
+        coupon = Coupon.objects.filter(code__iexact=coupon_code).first()
+        if coupon:
+            is_valid, msg = coupon.check_validity()
+            if is_valid:
+                discount_amount = float(coupon.get_discount_amount(final_price))
+                final_price = max(0.0, final_price - discount_amount)
+                applied_coupon = coupon
+            else:
+                messages.error(request, msg)
+                return redirect('template_gallery')
+        else:
+            messages.error(request, "Invalid coupon code.")
+            return redirect('template_gallery')
+            
+    if profile.wallet_balance >= final_price:
+        profile.wallet_balance -= final_price
+        
+        if applied_coupon:
+            applied_coupon.times_used += 1
+            applied_coupon.save()
+            CouponUsage.objects.create(
+                coupon=applied_coupon,
+                user=request.user,
+                discount_amount=discount_amount,
+                order_type='TEMPLATE'
+            )
         
         # Grant access
         PurchasedTemplate.objects.get_or_create(
@@ -488,16 +550,47 @@ def wallet_topup(request):
         
         if amount and bkash_number and transaction_id:
             from .models import BKashTopUpRequest
-            BKashTopUpRequest.objects.create(
-                user=request.user,
-                amount=amount,
-                bkash_number=bkash_number,
-                transaction_id=transaction_id,
-                status='PENDING'
-            )
-            messages.success(request, "Your top-up request has been submitted and is pending admin approval.")
-            return redirect('wallet_topup')
+            if BKashTopUpRequest.objects.filter(transaction_id=transaction_id).exists():
+                messages.error(request, "This transaction ID has already been submitted.")
+            else:
+                BKashTopUpRequest.objects.create(
+                    user=request.user,
+                    amount=amount,
+                    bkash_number=bkash_number,
+                    transaction_id=transaction_id,
+                    status='PENDING'
+                )
+                messages.success(request, "Your top-up request has been submitted and is pending admin approval.")
+                return redirect('wallet_topup')
         else:
             messages.error(request, "Please fill in all fields.")
             
     return render(request, 'accounts/wallet_topup.html')
+
+@login_required
+def toggle_follow_employer(request, employer_id):
+    if not request.user.is_seeker:
+        return JsonResponse({'status': 'error', 'message': 'Only seekers can follow employers'})
+    
+    from .models import EmployerProfile, EmployerFollower
+    employer = get_object_or_404(EmployerProfile, id=employer_id)
+    seeker = request.user.seeker_profile
+    
+    follower, created = EmployerFollower.objects.get_or_create(
+        employer=employer,
+        seeker=seeker
+    )
+    
+    if not created:
+        follower.delete()
+        is_following = False
+        message = f"You unfollowed {employer.company_name}"
+    else:
+        is_following = True
+        message = f"You are now following {employer.company_name}"
+        
+    return JsonResponse({
+        'status': 'success',
+        'is_following': is_following,
+        'message': message
+    })

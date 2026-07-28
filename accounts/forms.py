@@ -64,19 +64,30 @@ class CustomUserCreationForm(UserCreationForm):
 class SeekerProfileForm(forms.ModelForm):
     class Meta:
         model = SeekerProfile
-        fields = ['profile_picture', 'full_name', 'phone_number', 'address', 'portfolio_url', 'github_url', 'linkedin_url', 'twitter_url', 'career_summary', 'skills', 'languages', 'extracurricular_activities', 'gender', 'age_group']
+        fields = ['profile_picture', 'full_name', 'phone_number', 'alternative_phone', 'address', 'portfolio_url', 'github_url', 'linkedin_url', 'twitter_url', 'career_summary', 'skills', 'gender', 'age_group']
         widgets = {
             'profile_picture': forms.FileInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
             'career_summary': forms.Textarea(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md', 'rows': 4}),
-            'extracurricular_activities': forms.Textarea(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md', 'rows': 3, 'placeholder': 'e.g., Volunteer work, clubs, side projects'}),
             'portfolio_url': forms.URLInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
             'github_url': forms.URLInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
             'linkedin_url': forms.URLInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
             'twitter_url': forms.URLInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
             'skills': forms.TextInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md', 'placeholder': 'e.g., Python, Django, React'}),
-            'languages': forms.TextInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md', 'placeholder': 'e.g., English, Bengali, Spanish'}),
+            'alternative_phone': forms.TextInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
+            'phone_number': forms.TextInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
+            'address': forms.TextInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
+            'full_name': forms.TextInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
             'gender': forms.Select(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
             'age_group': forms.Select(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
+        }
+
+class SeekerAdditionalInfoForm(forms.ModelForm):
+    class Meta:
+        model = SeekerProfile
+        fields = ['languages', 'extracurricular_activities']
+        widgets = {
+            'languages': forms.TextInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md', 'placeholder': 'e.g., English, Bengali, Spanish'}),
+            'extracurricular_activities': forms.Textarea(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md', 'rows': 3, 'placeholder': 'e.g., Volunteer work, clubs, side projects'}),
         }
 
 class ReferenceForm(forms.ModelForm):
@@ -87,19 +98,52 @@ class ReferenceForm(forms.ModelForm):
 class EmployerProfileForm(forms.ModelForm):
     class Meta:
         model = EmployerProfile
-        fields = ['company_name', 'logo', 'company_banner', 'website', 'description']
+        fields = ['company_name', 'logo', 'company_banner', 'website', 'description', 'company_document', 'facebook_url', 'twitter_url', 'linkedin_url']
         widgets = {
             'company_name': forms.TextInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
-            'website': forms.URLInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
-            'description': forms.Textarea(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
+            'website': forms.TextInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md', 'placeholder': 'https:// or N/A'}),
+            'description': forms.Textarea(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md', 'rows': 4}),
             'logo': forms.FileInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
             'company_banner': forms.FileInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
+            'company_document': forms.FileInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
+            'facebook_url': forms.TextInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md', 'placeholder': 'https:// or N/A'}),
+            'twitter_url': forms.TextInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md', 'placeholder': 'https:// or N/A'}),
+            'linkedin_url': forms.TextInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md', 'placeholder': 'https:// or N/A'}),
         }
+        
+    def _clean_url_field(self, field_name):
+        url = self.cleaned_data.get(field_name)
+        if url and str(url).strip().lower() in ['n/a', 'na', 'none', '-']:
+            return ''
+        return url
+
+    def clean_website(self):
+        return self._clean_url_field('website')
+
+    def clean_facebook_url(self):
+        return self._clean_url_field('facebook_url')
+
+    def clean_twitter_url(self):
+        return self._clean_url_field('twitter_url')
+
+    def clean_linkedin_url(self):
+        return self._clean_url_field('linkedin_url')
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['company_name'].required = True
+        self.fields['description'].required = True
+        
+        # Only require logo upload if there isn't one already
+        if not self.instance.pk or not self.instance.logo:
+            self.fields['logo'].required = True
+        else:
+            self.fields['logo'].required = False
 
 class EducationForm(forms.ModelForm):
     class Meta:
         model = Education
-        fields = ('institution', 'degree', 'field_of_study', 'start_date', 'end_date', 'description')
+        fields = ('institution', 'degree', 'field_of_study', 'grading_system', 'grade_value', 'start_date', 'end_date', 'description')
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'end_date': forms.DateInput(attrs={'type': 'date'}),

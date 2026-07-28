@@ -17,12 +17,12 @@
                 <h3 class="text-lg font-medium text-primary mb-4">Contact Information</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                        <input type="text" value="{{ request.user.first_name }}" disabled class="bg-gray-50 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-500 sm:text-sm">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                        <input type="text" value="{{ request.user.seeker_profile.full_name|default:request.user.first_name }}" disabled class="bg-gray-50 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-500 sm:text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                        <input type="text" value="{{ request.user.last_name }}" disabled class="bg-gray-50 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-500 sm:text-sm">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                        <input type="text" value="{{ request.user.seeker_profile.phone_number }}" disabled class="bg-gray-50 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-500 sm:text-sm" placeholder="No phone number provided">
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -34,19 +34,19 @@
             
             <div class="mb-6">
                 <h3 class="text-lg font-medium text-primary mb-4">Resume</h3>
-                {% if request.user.seeker_profile.resume %}
+                {% if request.user.seeker_profile.active_resume_template %}
                     <div class="flex items-center p-4 border border-green-200 bg-green-50 rounded-lg">
                         <svg class="h-6 w-6 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span class="text-green-800 text-sm font-medium">Resume attached from profile.</span>
+                        <span class="text-green-800 text-sm font-medium">Your resume will be generated using the "{{ request.user.seeker_profile.active_resume_template.name }}" template and shared with the employer.</span>
                     </div>
                 {% else %}
                     <div class="flex items-center p-4 border border-yellow-200 bg-yellow-50 rounded-lg">
                         <svg class="h-6 w-6 text-yellow-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
-                        <span class="text-yellow-800 text-sm font-medium">No resume on profile. You can apply, but employers usually prefer a resume.</span>
+                        <span class="text-yellow-800 text-sm font-medium">No resume template selected. We will generate your resume using the default free template.</span>
                     </div>
                 {% endif %}
             </div>

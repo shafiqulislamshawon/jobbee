@@ -34,7 +34,28 @@ class EmployerProfile(models.Model):
     verification_document = models.FileField(upload_to='verification_docs/', blank=True, null=True)
     verification_status = models.CharField(max_length=20, choices=VERIFICATION_STATUS_CHOICES, blank=True)
     credits = models.IntegerField(default=0)
+    company_document = models.FileField(upload_to='company_docs/', blank=True, null=True)
+    facebook_url = models.URLField(blank=True, null=True)
+    twitter_url = models.URLField(blank=True, null=True)
+    linkedin_url = models.URLField(blank=True, null=True)
     history = HistoricalRecords()
+    
+    def get_completion_percentage(self):
+        score = 0
+        
+        # Mandatory fields
+        if self.company_name: score += 15
+        if self.logo: score += 15
+        if self.description: score += 20
+        
+        # Optional fields
+        if self.website: score += 10
+        if self.industry: score += 10
+        if self.company_size: score += 10
+        if self.company_document: score += 10
+        if self.facebook_url or self.twitter_url or self.linkedin_url: score += 10
+        
+        return min(int(score), 100)
     
     @property
     def reputation_score(self):
@@ -103,6 +124,7 @@ class SeekerProfile(models.Model):
     profile_picture = models.ImageField(upload_to='seeker_pictures/', blank=True, null=True)
     full_name = models.CharField(max_length=200, blank=True)
     phone_number = models.CharField(max_length=20, blank=True)
+    alternative_phone = models.CharField(max_length=20, blank=True, verbose_name="Alternative Phone Number")
     address = models.CharField(max_length=255, blank=True)
     
     portfolio_url = models.URLField(blank=True, null=True)
@@ -240,6 +262,16 @@ class Education(models.Model):
     institution = models.CharField(max_length=255)
     degree = models.CharField(max_length=255)
     field_of_study = models.CharField(max_length=255, blank=True)
+    
+    GRADING_CHOICES = (
+        ('CGPA', 'CGPA'),
+        ('GPA', 'GPA'),
+        ('GRADE', 'Grade'),
+        ('DIVISION', 'Division'),
+    )
+    grading_system = models.CharField(max_length=20, choices=GRADING_CHOICES, blank=True, null=True)
+    grade_value = models.CharField(max_length=50, blank=True, null=True, help_text="e.g. 3.85, A+, 1st Division")
+    
     start_date = models.DateField()
     end_date = models.DateField(blank=True, null=True)
     description = models.TextField(blank=True)
@@ -321,3 +353,15 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.user.username}"
+
+class EmployerFollower(models.Model):
+    employer = models.ForeignKey(EmployerProfile, on_delete=models.CASCADE, related_name='followers')
+    seeker = models.ForeignKey(SeekerProfile, on_delete=models.CASCADE, related_name='following')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('employer', 'seeker')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.seeker.user.username} follows {self.employer.company_name}"

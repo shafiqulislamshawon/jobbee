@@ -12,7 +12,7 @@ sitemaps = {
 
 from core.views import frontend_admin_dashboard, admin_toggle_user_status, admin_delete_job, privacy_policy, terms_of_service, help_center, admin_toggle_employer_verification, export_platform_data_csv, admin_hero_settings, admin_trusted_companies, admin_delete_trusted_company, admin_bkash_approve, admin_bkash_reject
 from blog.admin_views import admin_blog_dashboard, admin_create_post, admin_edit_post, admin_delete_post, admin_blog_categories, admin_delete_category
-from subscriptions.admin_views import admin_ads_dashboard, admin_ads_approve, admin_ads_reject
+from subscriptions.admin_views import admin_ads_dashboard, admin_ads_approve, admin_ads_reject, admin_coupons, admin_toggle_coupon, admin_edit_coupon
 from django.contrib.sitemaps.views import sitemap
 from core.sitemaps import StaticViewSitemap, JobSitemap, BlogSitemap
 from django.http import HttpResponse
@@ -52,6 +52,12 @@ urlpatterns = [
         path('', admin_ads_dashboard, name='admin_ads_dashboard'),
         path('<int:booking_id>/approve/', admin_ads_approve, name='admin_ads_approve'),
         path('<int:booking_id>/reject/', admin_ads_reject, name='admin_ads_reject'),
+    ])),
+    # Coupons Admin
+    path('platform-admin/coupons/', include([
+        path('', admin_coupons, name='admin_coupons'),
+        path('<int:coupon_id>/edit/', admin_edit_coupon, name='admin_edit_coupon'),
+        path('<int:coupon_id>/toggle/', admin_toggle_coupon, name='admin_toggle_coupon'),
     ])),
     path('privacy/', privacy_policy, name='privacy'),
     path('terms/', terms_of_service, name='terms'),

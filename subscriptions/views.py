@@ -3,7 +3,39 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
-from .models import Plan, EmployerSubscription, Transaction, AddOn, EmployerAddOn, AdSpace, AdBooking
+from django.http import JsonResponse
+import json
+from .models import Plan, EmployerSubscription, Transaction, AddOn, EmployerAddOn, AdSpace, AdBooking, Coupon
+
+@login_required
+def validate_coupon(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            code = data.get('code')
+            total = float(data.get('total', 0))
+            
+            coupon = Coupon.objects.filter(code__iexact=code).first()
+            if not coupon:
+                return JsonResponse({'valid': False, 'message': 'Invalid coupon code.'})
+                
+            is_valid, msg = coupon.check_validity()
+            if not is_valid:
+                return JsonResponse({'valid': False, 'message': msg})
+                
+            discount_amount = float(coupon.get_discount_amount(total))
+            final_total = max(0.0, total - discount_amount)
+            
+            return JsonResponse({
+                'valid': True,
+                'discount_amount': discount_amount,
+                'final_total': final_total,
+                'message': f'Coupon applied! You save ৳{discount_amount:.2f}'
+            })
+        except Exception as e:
+            return JsonResponse({'valid': False, 'message': str(e)})
+            
+    return JsonResponse({'valid': False, 'message': 'Invalid request method.'})
 
 def pricing(request):
     plans = Plan.objects.all().order_by('price')
@@ -30,9 +62,40 @@ def process_checkout(request, plan_id):
     plan = get_object_or_404(Plan, id=plan_id)
     employer_profile = request.user.employer_profile
     
-    if employer_profile.credits >= plan.price:
-        employer_profile.credits -= plan.price
+    final_price = float(plan.price)
+    discount_amount = 0.0
+    applied_coupon = None
+    
+    coupon_code = request.POST.get('coupon_code')
+    if coupon_code:
+        coupon = Coupon.objects.filter(code__iexact=coupon_code).first()
+        if coupon:
+            is_valid, msg = coupon.check_validity()
+            if is_valid:
+                discount_amount = float(coupon.get_discount_amount(final_price))
+                final_price = max(0.0, final_price - discount_amount)
+                applied_coupon = coupon
+            else:
+                messages.error(request, msg)
+                return redirect('subscriptions:checkout', plan_id=plan.id)
+        else:
+            messages.error(request, "Invalid coupon code.")
+            return redirect('subscriptions:checkout', plan_id=plan.id)
+    
+    if employer_profile.credits >= final_price:
+        employer_profile.credits -= final_price
         employer_profile.save()
+        
+        if applied_coupon:
+            applied_coupon.times_used += 1
+            applied_coupon.save()
+            from .models import CouponUsage
+            CouponUsage.objects.create(
+                coupon=applied_coupon,
+                user=request.user,
+                discount_amount=discount_amount,
+                order_type='SUBSCRIPTION'
+            )
     else:
         messages.error(request, "Insufficient wallet balance. Please top up your wallet.")
         return redirect('wallet_topup')
@@ -104,9 +167,40 @@ def process_addon_checkout(request, addon_id):
     addon = get_object_or_404(AddOn, id=addon_id)
     employer_profile = request.user.employer_profile
     
-    if employer_profile.credits >= addon.price:
-        employer_profile.credits -= addon.price
+    final_price = float(addon.price)
+    discount_amount = 0.0
+    applied_coupon = None
+    
+    coupon_code = request.POST.get('coupon_code')
+    if coupon_code:
+        coupon = Coupon.objects.filter(code__iexact=coupon_code).first()
+        if coupon:
+            is_valid, msg = coupon.check_validity()
+            if is_valid:
+                discount_amount = float(coupon.get_discount_amount(final_price))
+                final_price = max(0.0, final_price - discount_amount)
+                applied_coupon = coupon
+            else:
+                messages.error(request, msg)
+                return redirect('subscriptions:checkout_addon', addon_id=addon.id)
+        else:
+            messages.error(request, "Invalid coupon code.")
+            return redirect('subscriptions:checkout_addon', addon_id=addon.id)
+            
+    if employer_profile.credits >= final_price:
+        employer_profile.credits -= final_price
         employer_profile.save()
+        
+        if applied_coupon:
+            applied_coupon.times_used += 1
+            applied_coupon.save()
+            from .models import CouponUsage
+            CouponUsage.objects.create(
+                coupon=applied_coupon,
+                user=request.user,
+                discount_amount=discount_amount,
+                order_type='ADDON'
+            )
     else:
         messages.error(request, "Insufficient wallet balance. Please top up your wallet.")
         return redirect('wallet_topup')

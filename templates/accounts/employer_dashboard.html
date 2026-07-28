@@ -13,10 +13,29 @@
             <p class="mt-1 text-sm text-gray-500">
                 Welcome back, {{ request.user.employer_profile.company_name|default:request.user.username }}!
             </p>
+            {% with completion=request.user.employer_profile.get_completion_percentage %}
+            <div class="mt-4 max-w-md">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs font-semibold text-gray-700 uppercase tracking-wide">Profile Completeness</span>
+                    <span class="text-xs font-bold {% if completion < 50 %}text-red-600{% elif completion < 100 %}text-yellow-600{% else %}text-green-600{% endif %}">{{ completion }}%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="h-2 rounded-full {% if completion < 50 %}bg-red-500{% elif completion < 100 %}bg-yellow-500{% else %}bg-green-500{% endif %}" style="width: {{ completion }}%"></div>
+                </div>
+                {% if completion < 50 %}
+                <p class="mt-1 text-xs text-red-500">You must reach at least 50% to post jobs.</p>
+                {% elif completion < 100 %}
+                <p class="mt-1 text-xs text-yellow-500">Complete your profile to build more trust with candidates.</p>
+                {% endif %}
+            </div>
+            {% endwith %}
         </div>
-        <div class="mt-4 flex md:mt-0 md:ml-4 gap-3">
+        <div class="mt-4 flex flex-wrap md:mt-0 md:ml-4 gap-3">
             <a href="{% url 'employer_verification' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
                 Get Verified
+            </a>
+            <a href="{% url 'edit_profile' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+                Edit Profile
             </a>
             <a href="{% url 'manage_recruiters' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
                 Manage Team
@@ -33,21 +52,21 @@
             <a href="{% url 'subscriptions:addons_store' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
                 Add-ons Store
             </a>
-            <a href="{% url 'post_job' %}" class="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+            <a href="{% url 'post_job' %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
                 Post a New Job
             </a>
         </div>
     </div>
     
     {% if subscription and subscription.is_active %}
-    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 mb-8 p-6 flex justify-between items-center">
+    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 mb-8 p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
         <div>
             <h3 class="text-lg font-medium text-gray-900">Current Plan: {{ subscription.plan.name }}</h3>
             <p class="text-sm text-gray-500">Expires on {{ subscription.end_date|date:"M d, Y" }}</p>
         </div>
-        <div class="text-right">
-            <p class="text-sm font-medium text-gray-900">Jobs Quota: {{ subscription.jobs_posted }} / {% if subscription.plan.job_limit == -1 %}Unlimited{% else %}{{ subscription.plan.job_limit }}{% endif %}</p>
-            <div class="mt-2 flex gap-4 justify-end">
+        <div class="text-left sm:text-right w-full sm:w-auto">
+            <p class="text-sm font-medium text-gray-900">Jobs Quota: {{ subscription.jobs_posted }} / {% if subscription.total_job_limit == -1 %}Unlimited{% else %}{{ subscription.total_job_limit }}{% endif %}</p>
+            <div class="mt-2 flex gap-4 justify-start sm:justify-end">
                 <a href="{% url 'subscriptions:addons_store' %}" class="text-gray-600 hover:text-gray-900 text-sm font-medium">Add-ons Store</a>
                 <a href="{% url 'subscriptions:pricing' %}" class="text-accent hover:text-blue-600 text-sm font-medium">Upgrade Plan</a>
             </div>

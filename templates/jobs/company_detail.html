@@ -49,10 +49,13 @@
                     </div>
                 </div>
                 {% if request.user.is_seeker %}
-                <div class="pb-2">
+                <div class="pb-2 flex gap-3">
                     <a href="{% url 'add_review' company.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
                         Write a Review
                     </a>
+                    <button onclick="toggleFollow({{ company.id }})" id="followBtn-{{ company.id }}" class="inline-flex items-center px-4 py-2 border border-accent shadow-sm text-sm font-medium rounded-lg text-accent bg-white hover:bg-accent hover:text-white focus:outline-none transition">
+                        Follow
+                    </button>
                 </div>
                 {% endif %}
             </div>
@@ -128,4 +131,37 @@
         </div>
     </div>
 </div>
+
+{% if request.user.is_authenticated and request.user.is_seeker %}
+<script>
+function toggleFollow(employerId) {
+    fetch(`/accounts/employer/${employerId}/follow/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            const btn = document.getElementById(`followBtn-${employerId}`);
+            if (data.is_following) {
+                btn.textContent = 'Unfollow';
+                btn.classList.replace('text-accent', 'text-white');
+                btn.classList.replace('border-accent', 'border-gray-500');
+                btn.classList.replace('hover:bg-accent', 'bg-gray-500');
+                btn.classList.replace('hover:text-white', 'hover:bg-gray-600');
+            } else {
+                btn.textContent = 'Follow';
+                btn.classList.replace('text-white', 'text-accent');
+                btn.classList.replace('border-gray-500', 'border-accent');
+                btn.classList.replace('bg-gray-500', 'hover:bg-accent');
+                btn.classList.replace('hover:bg-gray-600', 'hover:text-white');
+            }
+        }
+    });
+}
+</script>
+{% endif %}
 {% endblock %}

@@ -16,4 +16,5 @@ urlpatterns = [
     path('ads/<int:space_id>/book/', views.ad_book, name='ad_book'),
     path('payment/success/', views.payment_success, name='payment_success'),
     path('payment/cancel/', views.payment_cancel, name='payment_cancel'),
+    path('validate-coupon/', views.validate_coupon, name='validate_coupon'),
 ]

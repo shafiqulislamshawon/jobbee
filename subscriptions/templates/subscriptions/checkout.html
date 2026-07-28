@@ -33,10 +33,27 @@
                 <span class="text-gray-600 font-medium">Plan</span>
                 <span class="text-gray-900 font-bold">{{ plan.name }}</span>
             </div>
+            
+            <div id="discount-row" class="flex justify-between items-center mb-2 hidden">
+                <span class="text-green-600 font-medium">Discount</span>
+                <span id="discount-amount" class="text-green-600 font-bold">-৳0.00</span>
+            </div>
+
             <div class="flex justify-between items-center text-lg mt-4 pt-4 border-t border-gray-200">
                 <span class="font-bold text-gray-900">Total</span>
-                <span class="font-extrabold text-accent">{{ plan.price|currency }}</span>
+                <span id="final-total" class="font-extrabold text-accent">{{ plan.price|currency }}</span>
             </div>
+        </div>
+        
+        <!-- Coupon Section -->
+        <div class="mt-4">
+            <div class="flex space-x-2">
+                <input type="text" id="coupon_input" placeholder="Have a coupon code?" class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-accent focus:border-accent sm:text-sm">
+                <button type="button" id="apply_coupon_btn" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-primary hover:bg-gray-800 focus:outline-none">
+                    Apply
+                </button>
+            </div>
+            <p id="coupon_message" class="mt-2 text-sm hidden"></p>
         </div>
 
         <!-- Payment Method Selection -->
@@ -55,7 +72,7 @@
                         <span class="block text-sm font-bold text-gray-900">Wallet Balance</span>
                         <span class="text-sm font-bold text-gray-700">{{ request.user.employer_profile.credits|currency }}</span>
                     </div>
-                    <span class="block text-sm mt-1">
+                    <span class="block text-sm mt-1" id="wallet-warning-span">
                         {% if request.user.employer_profile.credits >= plan.price %}
                             <span class="text-green-600 font-medium flex items-center">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
@@ -70,11 +87,18 @@
                     </span>
                 </div>
             </label>
+            <div class="text-right mt-2">
+                <a href="{% url 'wallet_topup' %}" class="inline-flex items-center text-sm font-medium text-accent hover:text-accent/80 transition-colors">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    Top up wallet balance
+                </a>
+            </div>
         </div>
 
         <form method="POST" action="{% url 'subscriptions:process_checkout' plan.id %}" class="mt-8">
             {% csrf_token %}
             <input type="hidden" name="use_wallet" id="use_wallet" value="true">
+            <input type="hidden" name="coupon_code" id="form_coupon_code" value="">
             <div class="space-y-3">
                 <button type="submit" class="w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-primary hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transform hover:-translate-y-0.5 transition-all duration-200">
                     Confirm Purchase
@@ -87,6 +111,79 @@
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const applyBtn = document.getElementById('apply_coupon_btn');
+    const couponInput = document.getElementById('coupon_input');
+    const couponMsg = document.getElementById('coupon_message');
+    const formCoupon = document.getElementById('form_coupon_code');
+    const discountRow = document.getElementById('discount-row');
+    const discountAmountElem = document.getElementById('discount-amount');
+    const finalTotalElem = document.getElementById('final-total');
+    const basePrice = {{ plan.price }};
+    const walletBalance = {{ request.user.employer_profile.credits|default:0 }};
+    
+    // Check wallet warning
+    const updateWalletWarning = (finalPrice) => {
+        const warningSpan = document.getElementById('wallet-warning-span');
+        if (!warningSpan) return;
+        if (walletBalance >= finalPrice) {
+            warningSpan.className = 'text-green-600 font-medium flex items-center';
+            warningSpan.innerHTML = '<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Sufficient balance';
+        } else {
+            warningSpan.className = 'text-red-500 font-medium flex items-center';
+            warningSpan.innerHTML = '<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg> Insufficient balance';
+        }
+    };
+    
+    applyBtn.addEventListener('click', async function() {
+        const code = couponInput.value.trim();
+        if (!code) return;
+        
+        applyBtn.disabled = true;
+        applyBtn.innerText = 'Applying...';
+        
+        try {
+            const res = await fetch("{% url 'subscriptions:validate_coupon' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ code: code, total: basePrice })
+            });
+            const data = await res.json();
+            
+            couponMsg.classList.remove('hidden');
+            if (data.valid) {
+                couponMsg.className = 'mt-2 text-sm text-green-600 font-medium';
+                couponMsg.innerText = data.message;
+                
+                discountRow.classList.remove('hidden');
+                discountAmountElem.innerText = '-৳' + parseFloat(data.discount_amount).toFixed(2);
+                finalTotalElem.innerText = '৳' + parseFloat(data.final_total).toFixed(2);
+                
+                formCoupon.value = code;
+                updateWalletWarning(parseFloat(data.final_total));
+            } else {
+                couponMsg.className = 'mt-2 text-sm text-red-600 font-medium';
+                couponMsg.innerText = data.message;
+                
+                discountRow.classList.add('hidden');
+                finalTotalElem.innerText = '৳' + parseFloat(basePrice).toFixed(2);
+                formCoupon.value = '';
+                updateWalletWarning(basePrice);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            applyBtn.disabled = false;
+            applyBtn.innerText = 'Apply';
+        }
+    });
+});
+</script>
 
 <style>
     @keyframes blob {

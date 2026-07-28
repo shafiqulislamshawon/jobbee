@@ -160,7 +160,7 @@
                             <a href="{% url 'referrals' %}" class="text-gray-600 hover:text-blue-600 text-sm font-bold transition-colors flex items-center gap-1">
                                 Referrals <span class="bg-blue-50 text-blue-600 text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wide">Beta</span>
                             </a>
-                            <a href="#" class="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm">Post a Job</a>
+                            <a href="{% url 'post_job' %}" class="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm">Post a Job</a>
                         {% elif user.is_seeker %}
                             <a href="{% url 'dashboard' %}" class="text-gray-600 hover:text-gray-900 text-sm font-bold transition-colors">My Profile</a>
                             <a href="{% url 'referrals' %}" class="text-gray-600 hover:text-blue-600 text-sm font-bold transition-colors flex items-center gap-1">
@@ -205,7 +205,7 @@
                         {% if user.is_employer %}
                             <a href="{% url 'dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-accent">Dashboard</a>
                             <a href="{% url 'referrals' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-accent">Referrals</a>
-                            <a href="#" class="block px-4 py-2 text-base font-medium text-accent hover:text-accent-dark hover:bg-gray-100 transition">Post a Job</a>
+                            <a href="{% url 'post_job' %}" class="block px-4 py-2 text-base font-medium text-accent hover:text-accent-dark hover:bg-gray-100 transition">Post a Job</a>
                         {% elif user.is_seeker %}
                             <a href="{% url 'dashboard' %}" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition">My Profile</a>
                         {% endif %}

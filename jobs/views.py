@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Avg, Count
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import Job, Application, JobEngagement
+from .models import Job, Application, JobEngagement, SavedCandidate
 from accounts.models import EmployerProfile, CompanyReview, User
 from django.views.decorators.cache import cache_page
 
@@ -61,6 +61,11 @@ def post_job(request):
         messages.error(request, 'Only employers can post jobs.')
         return redirect('home')
         
+    employer_profile = getattr(request.user, 'employer_profile', None)
+    if employer_profile and employer_profile.get_completion_percentage() < 50:
+        messages.error(request, 'Your profile must be at least 50% complete to post a job. Please update your profile.')
+        return redirect('edit_profile')
+        
     try:
         subscription = request.user.employer_profile.subscription
         if not subscription.can_post_job():
@@ -93,6 +98,21 @@ def post_job(request):
                 if featured_token:
                     featured_token.is_used = True
                     featured_token.save()
+            
+            # Notify followers
+            if hasattr(request.user, 'employer_profile'):
+                employer_profile = request.user.employer_profile
+                followers = employer_profile.followers.all()
+                if followers.exists():
+                    from accounts.models import Notification
+                    from django.urls import reverse
+                    job_url = reverse('job_detail', args=[job.id])
+                    for follower in followers:
+                        Notification.objects.create(
+                            user=follower.seeker.user,
+                            message=f"{employer_profile.company_name} just posted a new job: {job.title}",
+                            link=job_url
+                        )
             
             messages.success(request, 'Job posted successfully!')
             return redirect('dashboard')

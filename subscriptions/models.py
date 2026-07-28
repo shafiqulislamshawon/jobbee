@@ -67,6 +67,18 @@ class EmployerSubscription(models.Model):
         ).count()
         return extra_jobs_count > 0
 
+    @property
+    def total_job_limit(self):
+        if not self.plan or self.plan.job_limit == -1:
+            return -1
+        extra_jobs_count = self.employer.addons.filter(
+            addon__addon_type='EXTRA_JOB',
+            is_used=False
+        ).aggregate(
+            total_extra=models.Sum('quantity')
+        )['total_extra'] or 0
+        return self.plan.job_limit + extra_jobs_count
+
     def __str__(self):
         return f"{self.employer.company_name} - {self.plan.name if self.plan else 'No Plan'}"
 
@@ -135,8 +147,54 @@ class AdBooking(models.Model):
     def __str__(self):
         return f"Ad by {self.user.username} in {self.ad_space.name}"
 
-    @property
-    def is_currently_active(self):
+
+class Coupon(models.Model):
+    DISCOUNT_TYPES = (
+        ('PERCENTAGE', 'Percentage'),
+        ('FIXED', 'Fixed Amount'),
+    )
+    code = models.CharField(max_length=20, unique=True, help_text="Coupon code string")
+    discount_type = models.CharField(max_length=20, choices=DISCOUNT_TYPES)
+    discount_value = models.DecimalField(max_digits=10, decimal_places=2, help_text="Percentage or Fixed amount depending on type")
+    valid_from = models.DateTimeField()
+    valid_to = models.DateTimeField(null=True, blank=True, help_text="Leave blank for no expiration date")
+    max_uses = models.PositiveIntegerField(null=True, blank=True, help_text="Maximum total number of times this coupon can be used")
+    times_used = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    history = HistoricalRecords()
+
+    def __str__(self):
+        return f"{self.code} - {self.discount_value} {self.discount_type}"
+
+    def check_validity(self):
         from django.utils import timezone
-        today = timezone.now().date()
-        return self.status == 'APPROVED' and self.start_date <= today <= self.end_date
+        now = timezone.now()
+        if not self.is_active:
+            return False, "This coupon is inactive."
+        if self.max_uses is not None and self.times_used >= self.max_uses:
+            return False, "This coupon has reached its maximum uses."
+        if self.valid_from > now:
+            return False, "This coupon is not valid yet."
+        if self.valid_to and self.valid_to < now:
+            return False, "This coupon has expired."
+        return True, "Valid"
+
+    def is_valid(self):
+        is_valid, _ = self.check_validity()
+        return is_valid
+
+    def get_discount_amount(self, total_price):
+        if self.discount_type == 'PERCENTAGE':
+            return float(total_price) * (float(self.discount_value) / 100)
+        return min(float(self.discount_value), float(total_price))
+
+class CouponUsage(models.Model):
+    coupon = models.ForeignKey(Coupon, on_delete=models.CASCADE, related_name='usages')
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='coupon_usages')
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    order_type = models.CharField(max_length=50, help_text="e.g. SUBSCRIPTION, ADDON, TEMPLATE")
+    used_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} used {self.coupon.code} saving {self.discount_amount}"
