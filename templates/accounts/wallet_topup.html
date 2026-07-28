@@ -1,176 +1,91 @@
 {% extends 'base.html' %}
+{% load currency_tags %}
 
 {% block title %}Wallet Top-Up - {{ site_settings.site_name }}{% endblock %}
 
 {% block content %}
-<div class="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-gray-50">
-    <!-- Decorative background elements -->
-    <div class="absolute top-0 -left-4 w-72 h-72 bg-accent rounded-full mix-blend-multiply filter blur-2xl opacity-20 animate-blob"></div>
-    <div class="absolute top-0 -right-4 w-72 h-72 bg-primary rounded-full mix-blend-multiply filter blur-2xl opacity-20 animate-blob animation-delay-2000"></div>
-
-    <div class="max-w-xl w-full space-y-8 bg-white/80 backdrop-blur-xl p-10 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white relative z-10">
+<div class="bg-gray-50 min-h-screen py-12">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div class="text-center">
-            <div class="mx-auto w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
-                <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-            </div>
-            <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">
-                Top Up Wallet
-            </h2>
-            <p class="mt-2 text-sm text-gray-500">
-                Current Balance: <span class="font-bold text-gray-900">${{ request.user.employer_profile.credits }}</span>
-            </p>
-        </div>
-
-        <div class="space-y-6 mt-8">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-3">Select Amount</label>
-                <div class="grid grid-cols-3 gap-3">
-                    <button type="button" class="amount-btn bg-white border border-gray-200 rounded-xl py-3 px-4 text-center hover:border-accent hover:bg-accent/5 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200" data-amount="50">
-                        <span class="block text-lg font-bold text-gray-900">$50</span>
-                    </button>
-                    <button type="button" class="amount-btn bg-accent/10 border border-accent rounded-xl py-3 px-4 text-center ring-1 ring-accent focus:outline-none transition-all duration-200" data-amount="100">
-                        <span class="block text-lg font-bold text-accent">$100</span>
-                    </button>
-                    <button type="button" class="amount-btn bg-white border border-gray-200 rounded-xl py-3 px-4 text-center hover:border-accent hover:bg-accent/5 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200" data-amount="500">
-                        <span class="block text-lg font-bold text-gray-900">$500</span>
-                    </button>
-                </div>
-            </div>
-
-            <div>
-                <label for="custom_amount" class="block text-sm font-medium text-gray-700 mb-1">Or enter custom amount</label>
-                <div class="relative rounded-md shadow-sm">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span class="text-gray-500 sm:text-sm">$</span>
-                    </div>
-                    <input type="number" id="custom_amount" class="focus:ring-accent focus:border-accent block w-full pl-7 pr-12 py-3 sm:text-sm border-gray-300 rounded-xl bg-gray-50" placeholder="0.00" value="100" min="10">
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <span class="text-gray-500 sm:text-sm">USD</span>
-                    </div>
-                </div>
-                <p id="amount_error" class="mt-2 text-sm text-red-600 hidden">Minimum top-up is $10</p>
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <!-- Header -->
+            <div class="px-8 py-8 border-b border-gray-100 text-center bg-pink-600">
+                <h2 class="text-3xl font-extrabold text-white">
+                    Top Up Wallet via bKash
+                </h2>
+                <p class="mt-2 text-pink-100">
+                    Add credits to your account to purchase premium templates, post jobs, or buy subscriptions.
+                </p>
             </div>
             
-            <button id="pay-btn" class="w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-primary hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transform hover:-translate-y-0.5 transition-all duration-200 mt-6 disabled:opacity-50 disabled:cursor-not-allowed">
-                <span>Pay with Stripe</span>
-                <svg class="ml-2 -mr-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-            </button>
+            <div class="p-8">
+                <!-- Current Balance -->
+                <div class="mb-8 p-6 bg-pink-50 rounded-xl border border-pink-100 flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-pink-600 mb-1">Current Balance</p>
+                        {% if request.user.is_employer %}
+                            <p class="text-3xl font-black text-gray-900">{{ request.user.employer_profile.credits|currency }}</p>
+                        {% else %}
+                            <p class="text-3xl font-black text-gray-900">{{ request.user.seeker_profile.wallet_balance|currency }}</p>
+                        {% endif %}
+                    </div>
+                    <svg class="w-12 h-12 text-pink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+
+                <!-- Instructions -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Instructions</h3>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start">
+                            <span class="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-pink-100 text-pink-600 font-bold text-sm mr-3">1</span>
+                            Open your bKash app and select <b>Send Money</b>.
+                        </li>
+                        <li class="flex items-start">
+                            <span class="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-pink-100 text-pink-600 font-bold text-sm mr-3">2</span>
+                            Enter our Merchant Number: <b class="ml-1 text-gray-900">017XXXXXXXX</b>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-pink-100 text-pink-600 font-bold text-sm mr-3">3</span>
+                            Enter the amount you wish to top up and complete the transaction.
+                        </li>
+                        <li class="flex items-start">
+                            <span class="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-pink-100 text-pink-600 font-bold text-sm mr-3">4</span>
+                            Copy the <b>Transaction ID (TrxID)</b> and submit the form below.
+                        </li>
+                    </ul>
+                </div>
+
+                <form method="POST" action="{% url 'wallet_topup' %}">
+                    {% csrf_token %}
+                    <div class="space-y-6">
+                        <div>
+                            <label for="amount" class="block text-sm font-bold text-gray-700 mb-2">Amount (BDT)</label>
+                            <div class="relative rounded-xl shadow-sm">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 font-medium">৳</span>
+                                </div>
+                                <input type="number" name="amount" id="amount" min="1" step="0.01" required class="focus:ring-2 focus:ring-pink-500 focus:border-pink-500 block w-full pl-9 pr-4 py-3 bg-gray-50 sm:text-sm border border-gray-200 rounded-xl transition-all" placeholder="500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="bkash_number" class="block text-sm font-bold text-gray-700 mb-2">Your bKash Number</label>
+                            <input type="text" name="bkash_number" id="bkash_number" required class="focus:ring-2 focus:ring-pink-500 focus:border-pink-500 block w-full px-4 py-3 bg-gray-50 sm:text-sm border border-gray-200 rounded-xl transition-all" placeholder="01XXXXXXXXX">
+                        </div>
+
+                        <div>
+                            <label for="transaction_id" class="block text-sm font-bold text-gray-700 mb-2">Transaction ID (TrxID)</label>
+                            <input type="text" name="transaction_id" id="transaction_id" required class="focus:ring-2 focus:ring-pink-500 focus:border-pink-500 block w-full px-4 py-3 bg-gray-50 sm:text-sm border border-gray-200 rounded-xl transition-all uppercase placeholder-gray-400" placeholder="8X27J9L2B">
+                        </div>
+
+                        <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 transition-colors">
+                            Submit Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
         </div>
     </div>
 </div>
-
-<style>
-    @keyframes blob {
-        0% { transform: translate(0px, 0px) scale(1); }
-        33% { transform: translate(30px, -50px) scale(1.1); }
-        66% { transform: translate(-20px, 20px) scale(0.9); }
-        100% { transform: translate(0px, 0px) scale(1); }
-    }
-    .animate-blob {
-        animation: blob 7s infinite;
-    }
-    .animation-delay-2000 {
-        animation-delay: 2s;
-    }
-</style>
-
-<script src="https://js.stripe.com/v3/"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const stripe = Stripe('{{ stripe_public_key }}');
-        const customInput = document.getElementById('custom_amount');
-        const payBtn = document.getElementById('pay-btn');
-        const amountBtns = document.querySelectorAll('.amount-btn');
-        const errorMsg = document.getElementById('amount_error');
-
-        // Handle preset buttons
-        amountBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                // Reset all buttons
-                amountBtns.forEach(b => {
-                    b.className = 'amount-btn bg-white border border-gray-200 rounded-xl py-3 px-4 text-center hover:border-accent hover:bg-accent/5 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200';
-                    b.querySelector('span').className = 'block text-lg font-bold text-gray-900';
-                });
-                
-                // Set active state
-                this.className = 'amount-btn bg-accent/10 border border-accent rounded-xl py-3 px-4 text-center ring-1 ring-accent focus:outline-none transition-all duration-200';
-                this.querySelector('span').className = 'block text-lg font-bold text-accent';
-                
-                // Update input
-                customInput.value = this.dataset.amount;
-                validateAmount();
-            });
-        });
-
-        // Handle custom input
-        customInput.addEventListener('input', function() {
-            // Reset all buttons
-            amountBtns.forEach(b => {
-                b.className = 'amount-btn bg-white border border-gray-200 rounded-xl py-3 px-4 text-center hover:border-accent hover:bg-accent/5 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200';
-                b.querySelector('span').className = 'block text-lg font-bold text-gray-900';
-            });
-            validateAmount();
-        });
-
-        function validateAmount() {
-            const amount = parseInt(customInput.value) || 0;
-            if (amount < 10) {
-                errorMsg.classList.remove('hidden');
-                payBtn.disabled = true;
-                return false;
-            } else {
-                errorMsg.classList.add('hidden');
-                payBtn.disabled = false;
-                return true;
-            }
-        }
-
-        // Handle payment
-        payBtn.addEventListener('click', async function() {
-            if (!validateAmount()) return;
-            
-            this.disabled = true;
-            this.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...`;
-            
-            const amount = parseInt(customInput.value);
-            
-            try {
-                const response = await fetch("{% url 'create_stripe_checkout' %}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    body: JSON.stringify({ amount: amount })
-                });
-                
-                const session = await response.json();
-                
-                if (session.error) {
-                    alert(session.error);
-                    window.location.reload();
-                    return;
-                }
-                
-                // Redirect to Stripe Checkout
-                const result = await stripe.redirectToCheckout({
-                    sessionId: session.id
-                });
-                
-                if (result.error) {
-                    alert(result.error.message);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred. Please try again.');
-            }
-            
-            this.disabled = false;
-            this.innerHTML = `<span>Pay with Stripe</span><svg class="ml-2 -mr-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>`;
-        });
-    });
-</script>
 {% endblock %}

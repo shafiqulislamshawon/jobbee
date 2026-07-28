@@ -1,0 +1,21 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<h2>New Application for {{ job.title }}</h2>
+
+<p>Hello {{ employer_name }},</p>
+
+<p>You have received a new application for your job posting: <strong>{{ job.title }}</strong>.</p>
+
+<div class="details-box">
+    <strong>Applicant:</strong> {{ applicant_name }}<br>
+    <strong>Email:</strong> {{ applicant_email }}<br>
+    <strong>Date Applied:</strong> {{ application.applied_at|date:"F j, Y" }}
+</div>
+
+<p>Please log in to your employer dashboard to review this candidate's profile, resume, and cover letter.</p>
+
+<a href="{{ dashboard_url }}" class="button">Review Application</a>
+
+<p>Thank you for using JobBee to find the best talent!</p>
+{% endblock %}

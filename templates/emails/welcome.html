@@ -1,0 +1,15 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<h2>Welcome to JobBee, {{ user.get_full_name|default:user.username }}!</h2>
+
+<p>We are thrilled to have you join our platform. Whether you are looking for your dream job or searching for the perfect candidate, JobBee has everything you need.</p>
+
+<p>Get started by completing your profile so you can stand out!</p>
+
+<a href="{{ login_url }}" class="button">Log In to Your Account</a>
+
+<p>If you have any questions, feel free to reply to this email. We're here to help.</p>
+
+<p>Best regards,<br>The JobBee Team</p>
+{% endblock %}

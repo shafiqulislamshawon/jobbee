@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load currency_tags %}
 {% load static %}
 
 {% block extra_head %}
@@ -464,7 +465,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     </div>
                     {% if job.salary_min and job.salary_max %}
                     <div class="text-xs font-bold text-gray-900">
-                        ${{ job.salary_min|floatformat:0|slice:":-3" }}k - ${{ job.salary_max|floatformat:0|slice:":-3" }}k
+                        {{ job.salary_min|currency }} - {{ job.salary_max|currency }}
                     </div>
                     {% endif %}
                 </div>

@@ -166,8 +166,9 @@
                             <a href="{% url 'referrals' %}" class="text-gray-600 hover:text-blue-600 text-sm font-bold transition-colors flex items-center gap-1">
                                 Referrals <span class="bg-blue-50 text-blue-600 text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wide">Beta</span>
                             </a>
-                        {% else %}
-                            <a href="{% url 'frontend_admin' %}" class="text-gray-600 hover:text-gray-900 text-sm font-bold transition-colors">Admin</a>
+                        {% endif %}
+                        {% if user.is_staff %}
+                            <a href="{% url 'frontend_admin' %}" class="text-gray-600 hover:text-primary text-sm font-bold transition-colors bg-gray-100 px-3 py-1 rounded-lg">Platform CMS</a>
                         {% endif %}
                         <form method="post" action="{% url 'logout' %}" class="inline">
                             {% csrf_token %}
@@ -207,8 +208,9 @@
                             <a href="#" class="block px-4 py-2 text-base font-medium text-accent hover:text-accent-dark hover:bg-gray-100 transition">Post a Job</a>
                         {% elif user.is_seeker %}
                             <a href="{% url 'dashboard' %}" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition">My Profile</a>
-                        {% else %}
-                            <a href="{% url 'frontend_admin' %}" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition">Admin</a>
+                        {% endif %}
+                        {% if user.is_staff %}
+                            <a href="{% url 'frontend_admin' %}" class="block px-4 py-2 text-base font-bold text-primary hover:text-primary-dark hover:bg-gray-100 transition">Platform CMS</a>
                         {% endif %}
                         <form method="post" action="{% url 'logout' %}">
                             {% csrf_token %}

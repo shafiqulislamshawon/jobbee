@@ -38,6 +38,12 @@
                     </svg>
                     <span class="truncate">Job Moderation</span>
                 </button>
+                <button @click="activeTab = 'wallet'" :class="{ 'bg-gray-100 text-gray-900': activeTab === 'wallet', 'text-gray-600 hover:bg-gray-50 hover:text-gray-900': activeTab !== 'wallet' }" class="group flex items-center px-3 py-2 text-sm font-medium rounded-md w-full transition">
+                    <svg class="flex-shrink-0 -ml-1 mr-3 h-6 w-6 text-gray-400 group-hover:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    <span class="truncate">Wallet Top-ups</span>
+                </button>
                 <div class="pt-4 pb-2">
                     <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Settings</p>
                 </div>
@@ -302,9 +308,68 @@
                 </div>
             </div>
 
-
-
-        </div>
+            <!-- Wallet Tab -->
+            <div x-show="activeTab === 'wallet'" x-cloak class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-primary">Pending bKash Top-Ups</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trx ID & Number</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for req in bkash_requests %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">{{ req.user.username }}</div>
+                                    <div class="text-sm text-gray-500">{{ req.user.email }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-bold text-green-600">৳ {{ req.amount }}</div>
+                                    <div class="text-xs text-gray-500">{{ req.created_at|date:"M d, Y" }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-mono text-gray-900 bg-gray-100 px-2 py-1 rounded inline-block">{{ req.transaction_id }}</div>
+                                    <div class="text-sm text-gray-500 mt-1">bKash: {{ req.bkash_number }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if req.status == 'PENDING' %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                                    {% elif req.status == 'APPROVED' %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Approved</span>
+                                    {% else %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Rejected</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    {% if req.status == 'PENDING' %}
+                                    <div class="flex space-x-2 justify-end">
+                                        <form action="{% url 'admin_bkash_approve' req.id %}" method="post">
+                                            {% csrf_token %}
+                                            <button type="submit" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Approve</button>
+                                        </form>
+                                        <form action="{% url 'admin_bkash_reject' req.id %}" method="post">
+                                            {% csrf_token %}
+                                            <button type="submit" class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" onclick="return confirm('Are you sure you want to reject this top-up?');">Reject</button>
+                                        </form>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">No bKash requests found.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>        </div>
     </div>
 </div>
 

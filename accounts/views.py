@@ -39,6 +39,20 @@ def register(request):
                     pass
                     
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            
+            try:
+                from core.emails import send_html_email
+                from django.urls import reverse
+                login_url = request.build_absolute_uri(reverse('login'))
+                send_html_email(
+                    subject='Welcome to JobBee!',
+                    template_name='emails/welcome.html',
+                    context={'user': user, 'login_url': login_url},
+                    to_email=user.email
+                )
+            except Exception as e:
+                print(f"Error sending welcome email: {e}")
+                
             return redirect('home')
     else:
         form = CustomUserCreationForm()
@@ -249,6 +263,23 @@ def add_certification(request):
     return render(request, 'accounts/form_page.html', {'form': form, 'title': 'Add Certification'})
 
 @login_required
+def add_reference(request):
+    if not getattr(request.user, 'is_seeker', False):
+        return redirect('dashboard')
+        
+    if request.method == 'POST':
+        from .forms import ReferenceForm
+        form = ReferenceForm(request.POST)
+        if form.is_valid():
+            ref = form.save(commit=False)
+            ref.seeker = request.user.seeker_profile
+            ref.save()
+            return redirect('resume_builder')
+    else:
+        from .forms import ReferenceForm
+        form = ReferenceForm()
+    return render(request, 'accounts/form_page.html', {'form': form, 'title': 'Add Reference'})
+@login_required
 def resume_builder(request):
     if not getattr(request.user, 'is_seeker', False):
         return redirect('dashboard')
@@ -262,79 +293,90 @@ def export_resume_pdf(request):
         return redirect('dashboard')
         
     profile = request.user.seeker_profile
+    from .models import ResumeTemplate
     
+    preview_template_id = request.GET.get('template_id')
+    
+    if preview_template_id:
+        active_template = get_object_or_404(ResumeTemplate, id=preview_template_id)
+    else:
+        active_template = profile.active_resume_template
+        if not active_template:
+            active_template = ResumeTemplate.objects.filter(is_active=True).first()
+        
+    template_path = active_template.html_template if active_template else 'accounts/resume_templates/free.html'
+    
+    from django.template.loader import render_to_string
     from django.http import HttpResponse
-    from reportlab.lib import colors
-    from reportlab.lib.pagesizes import letter
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from xhtml2pdf import pisa
     
+    html_string = render_to_string(template_path, {'profile': profile, 'user': request.user})
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="resume_{request.user.username}.pdf"'
     
-    doc = SimpleDocTemplate(response, pagesize=letter, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
+    if request.GET.get('preview') == 'true':
+        response['Content-Disposition'] = f'inline; filename="resume_{request.user.username}.pdf"'
+    else:
+        response['Content-Disposition'] = f'attachment; filename="resume_{request.user.username}.pdf"'
     
-    Story = []
-    styles = getSampleStyleSheet()
-    
-    styles.add(ParagraphStyle(name='Name', fontSize=24, leading=28, spaceAfter=12, textColor=colors.HexColor('#1f2937')))
-    styles.add(ParagraphStyle(name='Contact', fontSize=10, leading=14, spaceAfter=24, textColor=colors.HexColor('#4b5563')))
-    styles.add(ParagraphStyle(name='Heading', fontSize=14, leading=18, spaceAfter=6, spaceBefore=18, textColor=colors.HexColor('#111827'), fontName='Helvetica-Bold'))
-    styles.add(ParagraphStyle(name='SubHeading', fontSize=12, leading=14, spaceAfter=4, fontName='Helvetica-Bold'))
-    styles.add(ParagraphStyle(name='BodyText', fontSize=10, leading=14, spaceAfter=12))
-    styles.add(ParagraphStyle(name='DateText', fontSize=10, leading=14, spaceAfter=6, textColor=colors.HexColor('#6b7280')))
-
-    # Name
-    name = f"{request.user.first_name} {request.user.last_name}".strip() or request.user.username
-    Story.append(Paragraph(name, styles['Name']))
-    
-    # Contact Info
-    contact_parts = [request.user.email]
-    if profile.portfolio_url:
-        contact_parts.append(profile.portfolio_url)
-    contact_str = " | ".join(contact_parts)
-    Story.append(Paragraph(contact_str, styles['Contact']))
-    
-    if profile.experience.exists():
-        Story.append(Paragraph("EXPERIENCE", styles['Heading']))
-        Story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#e5e7eb'), spaceAfter=12))
-        for exp in profile.experience.all().order_by('-start_date'):
-            Story.append(Paragraph(exp.job_title, styles['SubHeading']))
-            dates = f"{exp.start_date.strftime('%B %Y')} - {'Present' if exp.is_current else exp.end_date.strftime('%B %Y')}"
-            Story.append(Paragraph(f"{exp.company} | {dates}", styles['DateText']))
-            if exp.description:
-                Story.append(Paragraph(exp.description, styles['BodyText']))
-            else:
-                Story.append(Spacer(1, 12))
-                
-    if profile.education.exists():
-        Story.append(Paragraph("EDUCATION", styles['Heading']))
-        Story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#e5e7eb'), spaceAfter=12))
-        for edu in profile.education.all().order_by('-start_date'):
-            degree = f"{edu.degree}" + (f" in {edu.field_of_study}" if edu.field_of_study else "")
-            Story.append(Paragraph(degree, styles['SubHeading']))
-            dates = f"{edu.start_date.strftime('%Y')} - {edu.end_date.strftime('%Y') if edu.end_date else 'Present'}"
-            Story.append(Paragraph(f"{edu.institution} | {dates}", styles['DateText']))
-            if edu.description:
-                Story.append(Paragraph(edu.description, styles['BodyText']))
-            else:
-                Story.append(Spacer(1, 12))
-
-    if profile.skills:
-        Story.append(Paragraph("SKILLS", styles['Heading']))
-        Story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#e5e7eb'), spaceAfter=12))
-        Story.append(Paragraph(profile.skills, styles['BodyText']))
-
-    if profile.certifications.exists():
-        Story.append(Paragraph("CERTIFICATIONS", styles['Heading']))
-        Story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#e5e7eb'), spaceAfter=12))
-        for cert in profile.certifications.all().order_by('-issue_date'):
-            Story.append(Paragraph(cert.name, styles['SubHeading']))
-            Story.append(Paragraph(f"{cert.issuer} | Issued: {cert.issue_date.strftime('%Y')}", styles['DateText']))
-            Story.append(Spacer(1, 6))
-            
-    doc.build(Story)
+    pisa_status = pisa.CreatePDF(html_string, dest=response)
+    if pisa_status.err:
+        return HttpResponse('We had some errors <pre>' + html_string + '</pre>')
     return response
+
+@login_required
+def template_gallery(request):
+    if not getattr(request.user, 'is_seeker', False):
+        return redirect('dashboard')
+        
+    from .models import ResumeTemplate, PurchasedTemplate
+    templates = ResumeTemplate.objects.filter(is_active=True).order_by('price')
+    purchased = PurchasedTemplate.objects.filter(user=request.user).values_list('template_id', flat=True)
+    
+    if request.method == 'POST':
+        template_id = request.POST.get('template_id')
+        template = ResumeTemplate.objects.get(id=template_id)
+        if template.is_free or template.id in purchased:
+            request.user.seeker_profile.active_resume_template = template
+            request.user.seeker_profile.save()
+            messages.success(request, f'Template "{template.name}" selected!')
+            return redirect('resume_builder')
+            
+    return render(request, 'accounts/template_gallery.html', {
+        'templates': templates,
+        'purchased_ids': list(purchased),
+        'active_template': request.user.seeker_profile.active_resume_template
+    })
+
+@login_required
+def buy_template(request, template_id):
+    if not getattr(request.user, 'is_seeker', False):
+        return redirect('dashboard')
+        
+    from .models import ResumeTemplate, PurchasedTemplate
+    
+    template = ResumeTemplate.objects.get(id=template_id)
+    if template.is_free:
+        return redirect('template_gallery')
+        
+    profile = request.user.seeker_profile
+    if profile.wallet_balance >= template.price:
+        profile.wallet_balance -= template.price
+        
+        # Grant access
+        PurchasedTemplate.objects.get_or_create(
+            user=request.user,
+            template=template
+        )
+        
+        # Set as active
+        profile.active_resume_template = template
+        profile.save()
+        
+        messages.success(request, f'Successfully purchased {template.name}!')
+        return redirect('resume_builder')
+    else:
+        messages.error(request, 'Insufficient wallet balance. Please top up your wallet.')
+        return redirect('wallet_topup')
 
 from django.contrib import messages
 
@@ -437,89 +479,25 @@ def manage_recruiters(request):
     return render(request, 'accounts/manage_recruiters.html', {'seats': seats})
 
 import json
-import stripe
-from django.conf import settings
-from django.urls import reverse
-from django.views.decorators.http import require_POST
-from django.http import JsonResponse
-
-stripe.api_key = settings.STRIPE_SECRET_KEY
-
 @login_required
 def wallet_topup(request):
-    if not getattr(request.user, 'is_employer', False):
-        messages.error(request, "Only employers can top up their wallet.")
-        return redirect('dashboard')
-    
-    return render(request, 'accounts/wallet_topup.html', {
-        'stripe_public_key': settings.STRIPE_PUBLIC_KEY
-    })
-
-@login_required
-@require_POST
-def create_stripe_checkout(request):
-    if not getattr(request.user, 'is_employer', False):
-        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    if request.method == 'POST':
+        amount = request.POST.get('amount')
+        bkash_number = request.POST.get('bkash_number')
+        transaction_id = request.POST.get('transaction_id')
         
-    try:
-        data = json.loads(request.body)
-        amount = int(data.get('amount', 0))
-        
-        if amount < 10:
-            return JsonResponse({'error': 'Minimum top-up is $10'}, status=400)
+        if amount and bkash_number and transaction_id:
+            from .models import BKashTopUpRequest
+            BKashTopUpRequest.objects.create(
+                user=request.user,
+                amount=amount,
+                bkash_number=bkash_number,
+                transaction_id=transaction_id,
+                status='PENDING'
+            )
+            messages.success(request, "Your top-up request has been submitted and is pending admin approval.")
+            return redirect('wallet_topup')
+        else:
+            messages.error(request, "Please fill in all fields.")
             
-        domain_url = request.build_absolute_uri('/')[:-1]
-        
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[
-                {
-                    'price_data': {
-                        'currency': 'usd',
-                        'unit_amount': amount * 100,
-                        'product_data': {
-                            'name': 'Wallet Top-up (Credits)',
-                            'description': f'Top up your Jobbee wallet with ${amount} credits.',
-                        },
-                    },
-                    'quantity': 1,
-                },
-            ],
-            mode='payment',
-            success_url=domain_url + reverse('stripe_topup_success') + '?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url=domain_url + reverse('stripe_topup_cancel'),
-            metadata={
-                'user_id': request.user.id,
-                'amount': amount
-            }
-        )
-        return JsonResponse({'id': checkout_session.id})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-
-@login_required
-def stripe_topup_success(request):
-    session_id = request.GET.get('session_id')
-    if not session_id:
-        return redirect('wallet_topup')
-        
-    try:
-        session = stripe.checkout.Session.retrieve(session_id)
-        if session.payment_status == 'paid':
-            amount = int(session.metadata.amount)
-            user_id = int(session.metadata.user_id)
-            
-            if request.user.id == user_id:
-                profile = request.user.employer_profile
-                profile.credits += amount
-                profile.save()
-                messages.success(request, f"Successfully topped up your wallet with ${amount}!")
-    except Exception as e:
-        messages.error(request, f"Error processing payment: {str(e)}")
-        
-    return redirect('dashboard')
-
-@login_required
-def stripe_topup_cancel(request):
-    messages.warning(request, "Wallet top-up was cancelled.")
-    return redirect('wallet_topup')
+    return render(request, 'accounts/wallet_topup.html')

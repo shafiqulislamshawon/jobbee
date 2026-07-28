@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Resume</title>
+    <style>
+        @page {
+            size: letter portrait;
+            margin: 1.5cm;
+            @frame footer_frame {
+                -pdf-frame-content: footer_content;
+                left: 50pt; width: 512pt; top: 772pt; height: 20pt;
+            }
+        }
+        body {
+            font-family: Helvetica, sans-serif;
+            font-size: 11pt;
+            color: #222222;
+            line-height: 1.5;
+        }
+        h1 {
+            font-size: 28pt;
+            color: #111111; 
+            margin-bottom: 5px;
+            text-align: left;
+            border-bottom: 2px solid #333333;
+            padding-bottom: 10px;
+        }
+        .contact-info {
+            text-align: left;
+            font-size: 10pt;
+            color: #444444;
+            margin-bottom: 25px;
+            margin-top: 10px;
+        }
+        h2 {
+            font-size: 14pt;
+            color: #111111;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1.5pt;
+        }
+        h3 {
+            font-size: 12pt;
+            margin-bottom: 2px;
+            color: #000000;
+        }
+        p {
+            margin: 0 0 5px 0;
+        }
+        .meta {
+            font-size: 10pt;
+            color: #555555;
+            margin-bottom: 5px;
+        }
+        .desc {
+            font-size: 10.5pt;
+        }
+        .right-align {
+            text-align: right;
+            float: right;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="footer_content" style="text-align: right; color: #999; font-size: 9pt;">
+        Page <pdf:pagenumber> of <pdf:pagecount>
+    </div>
+
+    <table style="width: 100%; margin-bottom: 25px;">
+        <tr>
+            {% if profile.profile_picture %}
+            <td style="width: 120px; vertical-align: top;">
+                <img src="{{ profile.profile_picture.path }}" style="width: 100px; height: 100px; border-radius: 8px; display: block; border: 2px solid #111;">
+            </td>
+            {% endif %}
+            <td style="vertical-align: top; padding-left: {% if profile.profile_picture %}20px{% else %}0{% endif %};">
+                <h1 style="margin-top: 0; text-align: left;">{{ profile.full_name|default:user.username }} {{ user.last_name }}</h1>
+                <div class="contact-info" style="text-align: left; margin-bottom: 0;">
+                    <b>Email:</b> {{ user.email }}
+                    {% if profile.phone_number %} | <b>Phone:</b> {{ profile.phone_number }}{% endif %}
+                    {% if profile.address %} | <b>Address:</b> {{ profile.address }}{% endif %}<br>
+                    {% if profile.linkedin_url %}<b>LinkedIn:</b> {{ profile.linkedin_url }} | {% endif %}
+                    {% if profile.github_url %}<b>GitHub:</b> {{ profile.github_url }}{% endif %}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    {% if profile.career_summary %}
+    <h2>Executive Summary</h2>
+    <p class="desc">{{ profile.career_summary|linebreaksbr }}</p>
+    {% endif %}
+
+    {% if profile.experience.exists %}
+    <h2>Professional Experience</h2>
+    {% for exp in profile.experience.all|dictsortreversed:"start_date" %}
+        <div style="margin-bottom: 15px;">
+            <h3>{{ exp.job_title }}</h3>
+            <p class="meta"><b>{{ exp.company }}</b> | {{ exp.start_date|date:"M Y" }} - {% if exp.is_current %}Present{% else %}{{ exp.end_date|date:"M Y" }}{% endif %}</p>
+            {% if exp.description %}
+                <p class="desc">{{ exp.description|linebreaksbr }}</p>
+            {% endif %}
+        </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if profile.education.exists %}
+    <h2>Education</h2>
+    {% for edu in profile.education.all|dictsortreversed:"start_date" %}
+        <div style="margin-bottom: 15px;">
+            <h3>{{ edu.institution }}</h3>
+            <p class="meta">{{ edu.degree }}{% if edu.field_of_study %} in {{ edu.field_of_study }}{% endif %} | {{ edu.start_date|date:"Y" }} - {% if edu.end_date %}{{ edu.end_date|date:"Y" }}{% else %}Present{% endif %}</p>
+            {% if edu.description %}
+                <p class="desc">{{ edu.description|linebreaksbr }}</p>
+            {% endif %}
+        </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if profile.skills %}
+    <h2>Core Competencies</h2>
+    <p class="desc">{{ profile.skills }}</p>
+    {% endif %}
+
+    {% if profile.languages %}
+    <h2>Languages</h2>
+    <p class="desc">{{ profile.languages }}</p>
+    {% endif %}
+
+    {% if profile.extracurricular_activities %}
+    <h2>Extracurricular Activities</h2>
+    <p class="desc">{{ profile.extracurricular_activities|linebreaksbr }}</p>
+    {% endif %}
+
+    {% if profile.certifications.exists %}
+    <h2>Certifications</h2>
+    {% for cert in profile.certifications.all|dictsortreversed:"issue_date" %}
+        <p class="desc"><b>{{ cert.name }}</b> - {{ cert.issuer }} ({{ cert.issue_date|date:"Y" }})</p>
+    {% endfor %}
+    {% endif %}
+
+</body>
+</html>

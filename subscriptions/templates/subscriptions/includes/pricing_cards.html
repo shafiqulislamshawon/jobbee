@@ -1,3 +1,4 @@
+{% load currency_tags %}
 <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-24">
     {% for plan in plans %}
     <div class="relative flex flex-col p-8 bg-white rounded-3xl border transition-all duration-300 hover:shadow-xl hover:-translate-y-2 {% if forloop.counter == 2 %}border-blue-500 ring-2 ring-blue-500 shadow-lg scale-105 z-10{% else %}border-gray-200 shadow-sm{% endif %}">
@@ -17,7 +18,7 @@
 
         <div class="mb-8 flex flex-col items-center justify-center text-gray-900">
             <div class="flex items-baseline">
-                <span class="text-5xl font-extrabold tracking-tight">৳{{ plan.price|floatformat:"0" }}</span>
+                <span class="text-4xl font-extrabold tracking-tight">{{ plan.price|currency }}</span>
             </div>
             <span class="mt-2 text-sm font-semibold text-gray-500 uppercase tracking-widest">
                 / {% if plan.duration_days == 365 %}Year{% elif plan.duration_days == 180 %}6 Months{% else %}{{ plan.duration_days }} Days{% endif %}

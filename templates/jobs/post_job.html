@@ -1,170 +1,203 @@
 {% extends 'base.html' %}
+{% load widget_tweaks %}
 
 {% block title %}Post a New Job - {{ site_settings.site_name }}{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-    <div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
-        <div class="px-4 py-5 sm:px-6 bg-gray-50 border-b border-gray-200">
-            <h2 class="text-2xl font-bold leading-7 text-primary">Post a New Job</h2>
-            <p class="mt-1 text-sm text-gray-500">Fill out the details below to publish a new job opportunity.</p>
-        </div>
-        
-        <div class="p-6 sm:p-8">
-            <form method="POST" class="space-y-6">
-                {% csrf_token %}
-                
-                {% if form.errors %}
-                <div class="bg-red-50 p-4 rounded-md border border-red-200 mb-6">
-                    <h3 class="text-sm font-medium text-red-800">Please correct the errors below.</h3>
-                    <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
-                    {% for field in form %}
-                        {% for error in field.errors %}
-                            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
-                        {% endfor %}
-                    {% endfor %}
-                    {% for error in form.non_field_errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
-                
-                <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
-                    <!-- Title -->
-                    <div class="sm:col-span-2">
-                        <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700">Job Title</label>
-                        <div class="mt-1">
-                            <input type="text" name="{{ form.title.name }}" id="{{ form.title.id_for_label }}" required class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md">
-                        </div>
-                    </div>
+<div class="min-h-[85vh] relative py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 overflow-hidden">
+    <!-- Decorative blobs -->
+    <div class="absolute top-0 left-0 w-96 h-96 bg-accent rounded-full mix-blend-multiply filter blur-3xl opacity-20 -translate-x-1/2 -translate-y-1/2"></div>
+    <div class="absolute bottom-0 right-0 w-96 h-96 bg-primary rounded-full mix-blend-multiply filter blur-3xl opacity-20 translate-x-1/2 translate-y-1/2"></div>
 
-                    <!-- Type and Remote -->
+    <div class="max-w-4xl mx-auto relative z-10">
+        <div class="bg-white/80 backdrop-blur-xl shadow-xl rounded-2xl border border-white overflow-hidden">
+            <div class="px-6 py-8 sm:p-10 border-b border-gray-100 bg-white/50">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center shadow-sm">
+                        <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
                     <div>
-                        <label for="{{ form.employment_type.id_for_label }}" class="block text-sm font-medium text-gray-700">Employment Type</label>
-                        <div class="mt-1">
-                            {{ form.employment_type }}
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label for="{{ form.remote_status.id_for_label }}" class="block text-sm font-medium text-gray-700">Remote Status</label>
-                        <div class="mt-1">
-                            {{ form.remote_status }}
-                        </div>
-                    </div>
-
-                    <!-- Location -->
-                    <div class="sm:col-span-2">
-                        <label for="{{ form.location.id_for_label }}" class="block text-sm font-medium text-gray-700">Location</label>
-                        <div class="mt-1">
-                            <input type="text" name="{{ form.location.name }}" id="{{ form.location.id_for_label }}" class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md">
-                        </div>
-                    </div>
-                    
-                    <!-- Salary Min/Max and Currency -->
-                    <div class="sm:col-span-2">
-                        <label for="{{ form.currency.id_for_label }}" class="block text-sm font-medium text-gray-700">Currency</label>
-                        <div class="mt-1">
-                            {{ form.currency }}
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label for="{{ form.salary_min.id_for_label }}" class="block text-sm font-medium text-gray-700">Minimum Salary</label>
-                        <div class="mt-1">
-                            <input type="number" name="{{ form.salary_min.name }}" id="{{ form.salary_min.id_for_label }}" class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md">
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label for="{{ form.salary_max.id_for_label }}" class="block text-sm font-medium text-gray-700">Maximum Salary</label>
-                        <div class="mt-1">
-                            <input type="number" name="{{ form.salary_max.name }}" id="{{ form.salary_max.id_for_label }}" class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md">
-                        </div>
-                    </div>
-
-                    <!-- Description -->
-                    <div class="sm:col-span-2">
-                        <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700">Job Description</label>
-                        <div class="mt-1">
-                            <textarea name="{{ form.description.name }}" id="{{ form.description.id_for_label }}" rows="4" required class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Requirements -->
-                    <div class="sm:col-span-2">
-                        <label for="{{ form.requirements.id_for_label }}" class="block text-sm font-medium text-gray-700">Requirements</label>
-                        <div class="mt-1">
-                            <textarea name="{{ form.requirements.name }}" id="{{ form.requirements.id_for_label }}" rows="3" class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
-                        </div>
-                    </div>
-                    
-                    <!-- Responsibilities -->
-                    <div class="sm:col-span-2">
-                        <label for="{{ form.responsibilities.id_for_label }}" class="block text-sm font-medium text-gray-700">Responsibilities</label>
-                        <div class="mt-1">
-                            <textarea name="{{ form.responsibilities.name }}" id="{{ form.responsibilities.id_for_label }}" rows="3" class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Skills -->
-                    <div class="sm:col-span-2">
-                        <label for="{{ form.skills.id_for_label }}" class="block text-sm font-medium text-gray-700">Skills (Comma separated)</label>
-                        <div class="mt-1">
-                            <input type="text" name="{{ form.skills.name }}" id="{{ form.skills.id_for_label }}" class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md">
-                        </div>
-                    </div>
-                    
-                    <!-- Experience & Education -->
-                    <div>
-                        <label for="{{ form.experience.id_for_label }}" class="block text-sm font-medium text-gray-700">Experience Required</label>
-                        <div class="mt-1">
-                            <input type="text" name="{{ form.experience.name }}" id="{{ form.experience.id_for_label }}" class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md" placeholder="e.g. 3-5 Years">
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label for="{{ form.education.id_for_label }}" class="block text-sm font-medium text-gray-700">Education Required</label>
-                        <div class="mt-1">
-                            <input type="text" name="{{ form.education.name }}" id="{{ form.education.id_for_label }}" class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md" placeholder="e.g. Bachelor's Degree">
-                        </div>
-                    </div>
-                    
-                    <!-- Benefits -->
-                    <div class="sm:col-span-2">
-                        <label for="{{ form.benefits.id_for_label }}" class="block text-sm font-medium text-gray-700">Benefits</label>
-                        <div class="mt-1">
-                            <textarea name="{{ form.benefits.name }}" id="{{ form.benefits.id_for_label }}" rows="2" class="shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Deadline -->
-                    <div class="sm:col-span-2 md:col-span-1">
-                        <label for="{{ form.deadline.id_for_label }}" class="block text-sm font-medium text-gray-700">Application Deadline (Optional)</label>
-                        <div class="mt-1">
-                            {{ form.deadline }}
-                        </div>
+                        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Post a New Job</h2>
+                        <p class="mt-1 text-sm text-gray-500">Find the perfect candidate by providing details about the opportunity.</p>
                     </div>
                 </div>
-                
-                <div class="pt-5 flex justify-end">
-                    <a href="{% url 'dashboard' %}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent mr-3">
-                        Cancel
-                    </a>
-                    <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-accent hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
-                        Publish Job
-                    </button>
-                </div>
-            </form>
+            </div>
+            
+            <div class="p-6 sm:p-10">
+                <form method="POST" class="space-y-8">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                    <div class="bg-red-50 p-4 rounded-xl border border-red-200 mb-8">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-red-800">Please correct the errors below.</h3>
+                                <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+                                {% for field in form %}
+                                    {% for error in field.errors %}
+                                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                                {% for error in form.non_field_errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="grid grid-cols-1 gap-y-8 gap-x-6 sm:grid-cols-2">
+                        <!-- Title -->
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.title.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Job Title</label>
+                            {% render_field form.title class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" placeholder="e.g. Senior Frontend Developer" %}
+                        </div>
+
+                        <!-- Category -->
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.category.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Category</label>
+                            {% render_field form.category class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" %}
+                        </div>
+
+                        <!-- Type and Remote -->
+                        <div>
+                            <label for="{{ form.employment_type.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Employment Type</label>
+                            {% render_field form.employment_type class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.remote_status.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Remote Status</label>
+                            {% render_field form.remote_status class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" %}
+                        </div>
+
+                        <!-- Location -->
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.location.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Location</label>
+                            {% render_field form.location class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" placeholder="e.g. New York, NY or Remote" %}
+                        </div>
+                        
+                        <!-- Salary Min/Max -->
+                        <div>
+                            <label for="{{ form.salary_min.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Minimum Salary</label>
+                            {% render_field form.salary_min class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" placeholder="0" %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.salary_max.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Maximum Salary</label>
+                            {% render_field form.salary_max class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" placeholder="0" %}
+                        </div>
+
+                        <!-- Description -->
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.description.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Job Description</label>
+                            {% render_field form.description class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" rows="5" placeholder="Describe the role in detail..." %}
+                        </div>
+
+                        <!-- Requirements -->
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.requirements.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Requirements</label>
+                            {% render_field form.requirements class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" rows="3" placeholder="What are the key requirements?" %}
+                        </div>
+                        
+                        <!-- Responsibilities -->
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.responsibilities.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Responsibilities</label>
+                            {% render_field form.responsibilities class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" rows="3" placeholder="What will they do day-to-day?" %}
+                        </div>
+
+                        <!-- Skills -->
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.skills.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Skills (Comma separated)</label>
+                            {% render_field form.skills class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" placeholder="e.g. Python, React, Communication" %}
+                        </div>
+                        
+                        <!-- Experience & Education -->
+                        <div>
+                            <label for="{{ form.experience.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Experience Required</label>
+                            {% render_field form.experience class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" placeholder="e.g. 3-5 Years" %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.education.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Education Required</label>
+                            {% render_field form.education class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" placeholder="e.g. Bachelors Degree" %}
+                        </div>
+                        
+                        <!-- Benefits -->
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.benefits.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Benefits</label>
+                            {% render_field form.benefits class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" rows="2" placeholder="What perks do you offer?" %}
+                        </div>
+
+                        <!-- Deadline -->
+                        <div class="sm:col-span-2 md:col-span-1">
+                            <label for="{{ form.deadline.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Application Deadline (Optional)</label>
+                            {% render_field form.deadline class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" %}
+                        </div>
+                    </div>
+                    
+                    <div class="pt-8 mt-8 border-t border-gray-100 flex items-center justify-end space-x-4">
+                        <a href="{% url 'dashboard' %}" class="px-6 py-3 border border-gray-200 rounded-xl shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition-all duration-200">
+                            Cancel
+                        </a>
+                        <button type="submit" class="px-8 py-3 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-accent hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition-all duration-200">
+                            Publish Job
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
 <style>
-    /* Basic tailwind styling for the auto-rendered django fields */
-    select, input[type="date"] {
-        @apply shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md;
+    /* Tailwind overrides for Tom Select */
+    .ts-control {
+        border-radius: 0.75rem !important; /* rounded-xl */
+        border: 1px solid #e5e7eb !important; /* border-gray-200 */
+        background-color: #f9fafb !important; /* bg-gray-50 */
+        padding: 0.75rem 1rem !important; /* py-3 px-4 */
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+        transition: all 0.2s !important;
+    }
+    .ts-control.focus {
+        background-color: #ffffff !important;
+        border-color: transparent !important;
+        box-shadow: 0 0 0 2px #3b82f6 !important; /* ring-2 ring-accent */
+    }
+    .ts-dropdown {
+        border-radius: 0.75rem !important;
+        border: 1px solid #e5e7eb !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+        margin-top: 4px;
+        overflow: hidden;
+    }
+    .ts-dropdown .option {
+        padding: 0.5rem 1rem !important;
+    }
+    .ts-dropdown .active {
+        background-color: #eff6ff !important; /* bg-blue-50 */
+        color: #1e3a8a !important; /* text-blue-900 */
     }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        new TomSelect('#{{ form.category.id_for_label }}', {
+            create: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
+        });
+    });
+</script>
 {% endblock %}

@@ -1,6 +1,5 @@
 from django.urls import path
 from . import views
-from . import webhooks
 
 app_name = 'subscriptions'
 
@@ -15,7 +14,6 @@ urlpatterns = [
     path('billing/invoice/', views.download_invoice, name='download_invoice'),
     path('ads/', views.ad_spaces, name='ad_spaces'),
     path('ads/<int:space_id>/book/', views.ad_book, name='ad_book'),
-    path('webhook/stripe/', webhooks.stripe_webhook, name='stripe_webhook'),
     path('payment/success/', views.payment_success, name='payment_success'),
     path('payment/cancel/', views.payment_cancel, name='payment_cancel'),
 ]

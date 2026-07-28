@@ -197,6 +197,13 @@ def apply_job(request, job_id):
     if not request.user.is_seeker:
         return redirect('job_detail', job_id=job.id)
         
+    if hasattr(request.user, 'seeker_profile'):
+        completion = request.user.seeker_profile.get_completion_percentage()
+        if completion < 70:
+            from django.contrib import messages
+            messages.error(request, f"Your profile is only {completion}% complete. You need at least 70% to apply for jobs.")
+            return redirect('job_detail', job_id=job.id)
+        
     if request.method == 'POST':
         cover_letter = request.POST.get('cover_letter', '')
         
@@ -220,6 +227,26 @@ def apply_job(request, job_id):
                 message=f"New application for {job.title} from {request.user.first_name or request.user.username}",
                 link=f"/jobs/{job.id}/manage/"
             )
+            
+            try:
+                from core.emails import send_html_email
+                from django.urls import reverse
+                dashboard_url = request.build_absolute_uri(reverse('manage_applicants', args=[job.id]))
+                send_html_email(
+                    subject=f'New Application: {job.title}',
+                    template_name='emails/job_application.html',
+                    context={
+                        'job': job,
+                        'employer_name': job.employer.first_name or job.employer.username,
+                        'applicant_name': request.user.get_full_name() or request.user.username,
+                        'applicant_email': request.user.email,
+                        'application': app,
+                        'dashboard_url': dashboard_url
+                    },
+                    to_email=job.employer.email
+                )
+            except Exception as e:
+                print(f"Error sending job app email: {e}")
             
         JobEngagement.objects.create(job=job, user=request.user, action_type='CLICK')
         return redirect('job_detail', job_id=job.id)

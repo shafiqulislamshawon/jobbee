@@ -96,6 +96,9 @@ def frontend_admin_dashboard(request):
     # All Data for Tables
     all_users = User.objects.order_by('-date_joined')
     all_jobs = Job.objects.select_related('employer__employer_profile').order_by('-created_at')
+    
+    from accounts.models import BKashTopUpRequest
+    bkash_requests = BKashTopUpRequest.objects.all().order_by('-created_at')
 
     context = {
         'total_users': total_users,
@@ -107,6 +110,7 @@ def frontend_admin_dashboard(request):
         'total_revenue': total_revenue,
         'all_users': all_users,
         'all_jobs': all_jobs,
+        'bkash_requests': bkash_requests,
         
         # Analytics Data
         'cat_labels': cat_labels,
@@ -152,6 +156,28 @@ def admin_delete_job(request, job_id):
         job = get_object_or_404(Job, id=job_id)
         job.delete()
         messages.success(request, f"Job '{job.title}' has been deleted.")
+    return redirect('frontend_admin')
+
+@user_passes_test(lambda u: u.is_staff)
+def admin_bkash_approve(request, request_id):
+    if request.method == 'POST':
+        from accounts.models import BKashTopUpRequest
+        bkash_request = get_object_or_404(BKashTopUpRequest, id=request_id)
+        if bkash_request.status == 'PENDING':
+            bkash_request.status = 'APPROVED'
+            bkash_request.save()
+            messages.success(request, f"bKash Top-Up {bkash_request.transaction_id} approved.")
+    return redirect('frontend_admin')
+
+@user_passes_test(lambda u: u.is_staff)
+def admin_bkash_reject(request, request_id):
+    if request.method == 'POST':
+        from accounts.models import BKashTopUpRequest
+        bkash_request = get_object_or_404(BKashTopUpRequest, id=request_id)
+        if bkash_request.status == 'PENDING':
+            bkash_request.status = 'REJECTED'
+            bkash_request.save()
+            messages.success(request, f"bKash Top-Up {bkash_request.transaction_id} rejected.")
     return redirect('frontend_admin')
 
 def privacy_policy(request):

@@ -59,6 +59,28 @@
                 </div>
                 {% endif %}
 
+                {% if seeker_profile and seeker_profile.languages %}
+                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 bg-white">
+                    <dt class="text-sm font-medium text-gray-500">Languages</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        <div class="text-sm text-gray-700">
+                            {{ applicant.seeker_profile.languages }}
+                        </div>
+                    </dd>
+                </div>
+                {% endif %}
+
+                {% if seeker_profile and seeker_profile.extracurricular_activities %}
+                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 bg-gray-50">
+                    <dt class="text-sm font-medium text-gray-500">Extracurriculars</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        <div class="text-sm text-gray-700 whitespace-pre-wrap">
+                            {{ applicant.seeker_profile.extracurricular_activities }}
+                        </div>
+                    </dd>
+                </div>
+                {% endif %}
+
                 <!-- Experience -->
                 <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500">Experience</dt>

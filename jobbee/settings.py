@@ -201,10 +201,6 @@ CACHES = {
     }
 }
 
-# Stripe Configuration
-STRIPE_PUBLIC_KEY = 'pk_test_51TxmldIs5ztZaVHhe081TrvTTmQ80mvtAaFGXhMI8g76JK2sGDLG20k9GFd6exxrB2LQ52GGnUnYgHQS05vHhJg5004EMnAL9e'
-STRIPE_SECRET_KEY = 'sk_test_51TxmldIs5ztZaVHhbECXhTeyfnuR7uFF9uaXgXQqFgVFMK1pZeJtNzn7kXbpVIQokhGffjvtXjIEZKqKfYA685jL006YuXWkyO'
-STRIPE_WEBHOOK_SECRET = 'whsec_placeholder'
 
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -262,6 +258,3 @@ SOCIALACCOUNT_PROVIDERS = {
 # Email Backend (Console for Development)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# Stripe Settings
-STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY')
-STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')

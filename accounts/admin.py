@@ -35,3 +35,23 @@ admin.site.register(User, CustomUserAdmin)
 admin.site.register(Education)
 admin.site.register(Experience)
 admin.site.register(Certification)
+
+from .models import BKashTopUpRequest
+
+@admin.register(BKashTopUpRequest)
+class BKashTopUpRequestAdmin(admin.ModelAdmin):
+    list_display = ('user', 'amount', 'bkash_number', 'transaction_id', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('user__username', 'transaction_id', 'bkash_number')
+    actions = ['approve_requests', 'reject_requests']
+
+    def approve_requests(self, request, queryset):
+        for req in queryset:
+            if req.status == 'PENDING':
+                req.status = 'APPROVED'
+                req.save()
+    approve_requests.short_description = "Approve selected top-up requests"
+
+    def reject_requests(self, request, queryset):
+        queryset.update(status='REJECTED')
+    reject_requests.short_description = "Reject selected top-up requests"

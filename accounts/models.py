@@ -60,6 +60,30 @@ class EmployerProfile(models.Model):
     def __str__(self):
         return self.company_name
 
+class ResumeTemplate(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="0.00 means free")
+    thumbnail = models.ImageField(upload_to='resume_templates/thumbnails/', blank=True, null=True)
+    html_template = models.CharField(max_length=200, help_text="Path to the HTML file (e.g. accounts/resume_templates/free.html)")
+    is_active = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return self.name
+        
+    @property
+    def is_free(self):
+        return self.price == 0
+
+class PurchasedTemplate(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='purchased_templates')
+    template = models.ForeignKey(ResumeTemplate, on_delete=models.CASCADE)
+    purchased_at = models.DateTimeField(auto_now_add=True)
+    stripe_session_id = models.CharField(max_length=100, blank=True)
+    
+    class Meta:
+        unique_together = ('user', 'template')
+
 class SeekerProfile(models.Model):
     GENDER_CHOICES = (
         ('M', 'Male'),
@@ -76,19 +100,140 @@ class SeekerProfile(models.Model):
     )
     
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='seeker_profile')
-    resume = models.FileField(upload_to='resumes/', blank=True, null=True)
+    profile_picture = models.ImageField(upload_to='seeker_pictures/', blank=True, null=True)
+    full_name = models.CharField(max_length=200, blank=True)
+    phone_number = models.CharField(max_length=20, blank=True)
+    address = models.CharField(max_length=255, blank=True)
+    
     portfolio_url = models.URLField(blank=True, null=True)
+    github_url = models.URLField(blank=True, null=True, verbose_name="GitHub URL")
+    linkedin_url = models.URLField(blank=True, null=True, verbose_name="LinkedIn URL")
+    twitter_url = models.URLField(blank=True, null=True, verbose_name="Other Social Media URL")
+    
+    career_summary = models.TextField(blank=True)
     skills = models.CharField(max_length=255, blank=True, help_text='Comma-separated skills', db_index=True)
+    languages = models.CharField(max_length=255, blank=True, help_text='Comma-separated languages')
+    extracurricular_activities = models.TextField(blank=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True, null=True)
     age_group = models.CharField(max_length=10, choices=AGE_CHOICES, blank=True, null=True)
     resume_score = models.PositiveIntegerField(null=True, blank=True)
     missing_skills = models.TextField(blank=True)
     resume_suggestions = models.TextField(blank=True)
     location = CountryField(blank=True, blank_label='(select country)', db_index=True)
+    wallet_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    active_resume_template = models.ForeignKey(ResumeTemplate, on_delete=models.SET_NULL, null=True, blank=True, related_name='active_profiles')
     history = HistoricalRecords()
+
+    def __str__(self):
+        return f'{self.full_name or self.user.username} Profile'
+
+    def get_completion_percentage(self):
+        score = 0
+        
+        # 1. Profile Picture (10%)
+        if self.profile_picture:
+            score += 10
+            
+        # 2. Basic Info (15%)
+        if self.full_name:
+            score += 5
+        if self.phone_number:
+            score += 5
+        if self.location or self.address:
+            score += 5
+            
+        # 3. Professional Details (20%)
+        if self.career_summary:
+            score += 10
+        if self.skills:
+            score += 10
+            
+        # 4. Background (15%) - Need either Education OR Experience
+        has_education = self.education.exists()
+        has_experience = self.experience.exists()
+        if has_education or has_experience:
+            score += 15
+            
+        # 5. Social Links (10%) - Need at least one
+        if self.portfolio_url or self.linkedin_url or self.github_url:
+            score += 10
+            
+        # 6. Languages & Extracurriculars (10%)
+        if self.languages:
+            score += 5
+        if self.extracurricular_activities:
+            score += 5
+            
+        # 7. Certifications & References (20%)
+        if self.certifications.exists():
+            score += 10
+        if self.references.exists():
+            score += 10
+            
+        return score
+
+class BKashTopUpRequest(models.Model):
+    STATUS_CHOICES = (
+        ('PENDING', 'Pending'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bkash_topups')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    bkash_number = models.CharField(max_length=20)
+    transaction_id = models.CharField(max_length=100, unique=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def save(self, *args, **kwargs):
+        if self.pk:
+            old = BKashTopUpRequest.objects.get(pk=self.pk)
+            if old.status == 'PENDING' and self.status == 'APPROVED':
+                # Convert the amount to base currency if needed
+                from core.models import CurrencySettings
+                settings = CurrencySettings.objects.first()
+                
+                amount_to_add = self.amount
+                if settings and settings.enable_conversion and settings.exchange_rate > 0:
+                    amount_to_add = self.amount / settings.exchange_rate
+
+                # Credit the user's wallet
+                if self.user.is_seeker and hasattr(self.user, 'seeker_profile'):
+                    self.user.seeker_profile.wallet_balance += amount_to_add
+                    self.user.seeker_profile.save()
+                elif self.user.is_employer and hasattr(self.user, 'employer_profile'):
+                    self.user.employer_profile.credits += amount_to_add
+                    self.user.employer_profile.save()
+                    
+                # Send approval email
+                try:
+                    from core.emails import send_html_email
+                    send_html_email(
+                        subject='JobBee Wallet Top-Up Approved!',
+                        template_name='emails/bkash_approved.html',
+                        context={
+                            'user': self.user,
+                            'request_obj': self,
+                            'dashboard_url': 'http://localhost:8000/accounts/dashboard/'
+                        },
+                        to_email=self.user.email
+                    )
+                except Exception as e:
+                    print(f"Error sending bKash approval email: {e}")
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.amount} BDT ({self.status})"
+
+class Reference(models.Model):
+    seeker = models.ForeignKey(SeekerProfile, on_delete=models.CASCADE, related_name='references')
+    name = models.CharField(max_length=200)
+    relationship = models.CharField(max_length=100, help_text="e.g. Former Manager, Colleague")
+    company = models.CharField(max_length=200, blank=True)
+    contact_info = models.CharField(max_length=255, help_text="Email or phone number")
     
     def __str__(self):
-        return f'{self.user.username} Profile'
+        return f"{self.name} ({self.relationship})"
 
 class Education(models.Model):
     seeker = models.ForeignKey(SeekerProfile, on_delete=models.CASCADE, related_name='education')

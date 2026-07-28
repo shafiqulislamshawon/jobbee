@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load currency_tags %}
+{% block title %}Resume Templates - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen pb-12">
+    <!-- Header Section -->
+    <div class="bg-white border-b border-gray-200 shadow-sm">
+        <div class="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <div>
+                <h2 class="text-3xl font-bold leading-7 text-primary sm:truncate">
+                    Resume Template Gallery
+                </h2>
+                <p class="mt-2 text-sm text-gray-500">
+                    Choose a professionally designed template to stand out from the crowd. Paid templates include lifetime access.
+                </p>
+            </div>
+            <a href="{% url 'resume_builder' %}" class="text-sm font-medium text-gray-500 hover:text-gray-900 border border-gray-300 rounded-md px-4 py-2 bg-white hover:bg-gray-50 transition-colors">
+                &larr; Back to Builder
+            </a>
+        </div>
+    </div>
+
+    <div class="max-w-5xl mx-auto mt-8 px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for template in templates %}
+            <div class="bg-white rounded-xl shadow-sm border {% if active_template.id == template.id %}border-accent ring-2 ring-accent ring-opacity-50{% else %}border-gray-200{% endif %} overflow-hidden transition-all hover:shadow-md flex flex-col">
+                <div class="aspect-w-3 aspect-h-4 bg-gray-100 flex items-center justify-center p-6 text-gray-400">
+                    <!-- Placeholder if no thumbnail -->
+                    {% if template.thumbnail %}
+                    <img src="{{ template.thumbnail.url }}" alt="{{ template.name }}" class="object-cover w-full h-full shadow-sm rounded-sm">
+                    {% else %}
+                    <svg class="w-16 h-16 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    {% endif %}
+                </div>
+                <div class="p-5 flex-1 flex flex-col">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-lg font-bold text-gray-900">{{ template.name }}</h3>
+                        {% if template.is_free %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800">FREE</span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-800">{{ template.price|currency }}</span>
+                        {% endif %}
+                    </div>
+                    <p class="text-sm text-gray-500 mb-6 flex-1">{{ template.description }}</p>
+                    
+                    <div class="mt-auto space-y-2">
+                        <a href="{% url 'export_resume_pdf' %}?preview=true&template_id={{ template.id }}" target="_blank" class="block w-full text-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                            Preview
+                        </a>
+                        {% if active_template.id == template.id %}
+                        <button disabled class="w-full text-center px-4 py-2 border border-accent rounded-lg shadow-sm text-sm font-bold text-accent bg-blue-50 cursor-not-allowed">
+                            Current Template
+                        </button>
+                        {% elif template.is_free or template.id in purchased_ids %}
+                        <form method="POST" action="{% url 'template_gallery' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="template_id" value="{{ template.id }}">
+                            <button type="submit" class="w-full text-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-accent hover:bg-blue-700 transition-colors">
+                                Select Template
+                            </button>
+                        </form>
+                        {% else %}
+                        <a href="{% url 'buy_template' template.id %}" class="block w-full text-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
+                            Buy for {{ template.price|currency }}
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

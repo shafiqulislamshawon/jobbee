@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load currency_tags %}
 
 {% block title %}Add-ons Store{% endblock %}
 
@@ -32,7 +33,7 @@
                 
                 <div class="mt-auto pt-6">
                     <div class="flex items-end gap-1 mb-4">
-                        <span class="text-3xl font-black text-blue-600">$ {{ addon.price|floatformat:0 }}</span>
+                        <span class="text-3xl font-black text-blue-600">{{ addon.price|currency }}</span>
                     </div>
                     
                     <a href="{% url 'subscriptions:checkout_addon' addon.id %}" class="w-full inline-flex justify-center items-center px-4 py-3 border border-transparent text-sm font-bold rounded-xl text-white bg-gray-900 hover:bg-blue-600 shadow-sm transition-colors">

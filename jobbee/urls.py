@@ -10,7 +10,7 @@ sitemaps = {
     'companies': CompanySitemap,
 }
 
-from core.views import frontend_admin_dashboard, admin_toggle_user_status, admin_delete_job, privacy_policy, terms_of_service, help_center, admin_toggle_employer_verification, export_platform_data_csv, admin_hero_settings, admin_trusted_companies, admin_delete_trusted_company
+from core.views import frontend_admin_dashboard, admin_toggle_user_status, admin_delete_job, privacy_policy, terms_of_service, help_center, admin_toggle_employer_verification, export_platform_data_csv, admin_hero_settings, admin_trusted_companies, admin_delete_trusted_company, admin_bkash_approve, admin_bkash_reject
 from blog.admin_views import admin_blog_dashboard, admin_create_post, admin_edit_post, admin_delete_post, admin_blog_categories, admin_delete_category
 from subscriptions.admin_views import admin_ads_dashboard, admin_ads_approve, admin_ads_reject
 from django.contrib.sitemaps.views import sitemap
@@ -35,6 +35,8 @@ urlpatterns = [
     path('platform-admin/user/<int:user_id>/toggle/', admin_toggle_user_status, name='admin_toggle_user_status'),
     path('platform-admin/employer/<int:profile_id>/toggle-verification/', admin_toggle_employer_verification, name='admin_toggle_employer_verification'),
     path('platform-admin/job/<int:job_id>/delete/', admin_delete_job, name='admin_delete_job'),
+    path('platform-admin/bkash/<int:request_id>/approve/', admin_bkash_approve, name='admin_bkash_approve'),
+    path('platform-admin/bkash/<int:request_id>/reject/', admin_bkash_reject, name='admin_bkash_reject'),
     
     # Blog Admin
     path('platform-admin/blog/', include([

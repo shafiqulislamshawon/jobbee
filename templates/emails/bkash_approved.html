@@ -1,0 +1,21 @@
+{% extends "emails/base.html" %}
+{% load currency_tags %}
+
+{% block content %}
+<h2>Wallet Top-Up Approved!</h2>
+
+<p>Hello {{ user.get_full_name|default:user.username }},</p>
+
+<p>Great news! Your recent bKash Wallet Top-up has been successfully verified and approved by our administrators.</p>
+
+<div class="details-box">
+    <strong>Transaction ID:</strong> {{ request_obj.transaction_id }}<br>
+    <strong>Amount Topped Up:</strong> {{ request_obj.amount|currency }}
+</div>
+
+<p>The funds have been credited to your JobBee Wallet and are available for immediate use across the platform (e.g. purchasing Premium Resume templates or Job Board Add-ons).</p>
+
+<a href="{{ dashboard_url }}" class="button">View My Wallet</a>
+
+<p>Thank you for choosing JobBee!</p>
+{% endblock %}

@@ -1,5 +1,20 @@
 from django.db import models
 
+class CurrencySettings(models.Model):
+    base_currency = models.CharField(max_length=10, default="USD", help_text="e.g. USD")
+    base_currency_symbol = models.CharField(max_length=5, default="$", help_text="e.g. $")
+    display_currency = models.CharField(max_length=10, default="BDT", help_text="e.g. BDT")
+    display_currency_symbol = models.CharField(max_length=5, default="৳", help_text="e.g. ৳")
+    exchange_rate = models.DecimalField(max_digits=10, decimal_places=4, default=120.0000, help_text="1 Base = X Display")
+    enable_conversion = models.BooleanField(default=True, help_text="Turn currency conversion on or off globally")
+
+    class Meta:
+        verbose_name = "Currency Settings"
+        verbose_name_plural = "Currency Settings"
+
+    def __str__(self):
+        return f"{self.base_currency} to {self.display_currency} Configuration"
+
 class HeroSectionSettings(models.Model):
     # Left Content
     badge_text = models.CharField(max_length=100, default="Platform v2.0 is Live", help_text="Small text badge at the top")

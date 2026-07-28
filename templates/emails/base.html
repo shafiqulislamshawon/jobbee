@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobBee Notification</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f9fafb;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #1a56db;
+            font-size: 28px;
+            margin: 0;
+            letter-spacing: -0.025em;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid #f3f4f6;
+        }
+        .content {
+            color: #374151;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        h2 {
+            color: #111827;
+            font-size: 20px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #1a56db;
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .footer p {
+            margin: 5px 0;
+        }
+        .details-box {
+            background-color: #f3f4f6;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+            border-left: 4px solid #1a56db;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>JobBee</h1>
+        </div>
+        <div class="card">
+            <div class="content">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+        <div class="footer">
+            <p>&copy; {% now "Y" %} JobBee. All rights reserved.</p>
+            <p>You received this email because you are registered on JobBee.</p>
+        </div>
+    </div>
+</body>
+</html>

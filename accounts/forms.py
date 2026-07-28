@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import User, SeekerProfile, EmployerProfile, Education, Experience, Certification
+from .models import User, SeekerProfile, EmployerProfile, Education, Experience, Certification, Reference
 
 class CustomUserCreationForm(UserCreationForm):
     ROLE_CHOICES = (
@@ -64,14 +64,25 @@ class CustomUserCreationForm(UserCreationForm):
 class SeekerProfileForm(forms.ModelForm):
     class Meta:
         model = SeekerProfile
-        fields = ['resume', 'portfolio_url', 'skills', 'gender', 'age_group']
+        fields = ['profile_picture', 'full_name', 'phone_number', 'address', 'portfolio_url', 'github_url', 'linkedin_url', 'twitter_url', 'career_summary', 'skills', 'languages', 'extracurricular_activities', 'gender', 'age_group']
         widgets = {
-            'resume': forms.FileInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100'}),
+            'profile_picture': forms.FileInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
+            'career_summary': forms.Textarea(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md', 'rows': 4}),
+            'extracurricular_activities': forms.Textarea(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md', 'rows': 3, 'placeholder': 'e.g., Volunteer work, clubs, side projects'}),
             'portfolio_url': forms.URLInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
+            'github_url': forms.URLInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
+            'linkedin_url': forms.URLInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
+            'twitter_url': forms.URLInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
             'skills': forms.TextInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md', 'placeholder': 'e.g., Python, Django, React'}),
+            'languages': forms.TextInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md', 'placeholder': 'e.g., English, Bengali, Spanish'}),
             'gender': forms.Select(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
             'age_group': forms.Select(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
         }
+
+class ReferenceForm(forms.ModelForm):
+    class Meta:
+        model = Reference
+        fields = ('name', 'relationship', 'company', 'contact_info')
 
 class EmployerProfileForm(forms.ModelForm):
     class Meta:

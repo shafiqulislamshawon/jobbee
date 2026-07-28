@@ -6,7 +6,7 @@ class JobForm(forms.ModelForm):
         model = Job
         fields = [
             'title', 'category', 'description', 'responsibilities', 'requirements', 
-            'currency', 'salary_min', 'salary_max', 'employment_type', 'remote_status', 
+            'salary_min', 'salary_max', 'employment_type', 'remote_status', 
             'location', 'benefits', 'skills', 'experience', 'education', 'deadline',
             'is_featured'
         ]

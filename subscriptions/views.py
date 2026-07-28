@@ -30,31 +30,24 @@ def process_checkout(request, plan_id):
     plan = get_object_or_404(Plan, id=plan_id)
     employer_profile = request.user.employer_profile
     
-    use_wallet = request.POST.get('use_wallet') == 'true'
-    
-    if use_wallet:
-        if employer_profile.credits >= plan.price:
-            employer_profile.credits -= plan.price
-            employer_profile.save()
-            payment_method = "Wallet Balance"
-        else:
-            messages.error(request, "Insufficient wallet balance.")
-            return redirect('subscriptions:checkout', plan_id=plan.id)
+    if employer_profile.credits >= plan.price:
+        employer_profile.credits -= plan.price
+        employer_profile.save()
     else:
-        payment_method = "Mock Instant Payment"
+        messages.error(request, "Insufficient wallet balance. Please top up your wallet.")
+        return redirect('wallet_topup')
     
-    # Check if they already have an active subscription and it's an upgrade (simplified for now)
+    # Check if they already have an active subscription and it's an upgrade
     subscription, created = EmployerSubscription.objects.get_or_create(
         employer=employer_profile,
         defaults={
             'plan': plan,
-            'end_date': timezone.now(), # Will be updated upon payment
+            'end_date': timezone.now(),
             'status': 'PENDING'
         }
     )
     
     if not created and subscription.status != 'PENDING':
-        # Create a new pending subscription for upgrade/renewal
         subscription = EmployerSubscription.objects.create(
             employer=employer_profile,
             plan=plan,
@@ -62,57 +55,21 @@ def process_checkout(request, plan_id):
             status='PENDING'
         )
 
-    # Record the transaction as pending
+    # Record the transaction
     tx = Transaction.objects.create(
         subscription=subscription,
         amount=plan.price,
-        payment_method="Wallet Balance" if use_wallet else "Stripe",
-        status="COMPLETED" if use_wallet else "PENDING"
+        payment_method="Wallet Balance",
+        status="COMPLETED"
     )
 
-    if use_wallet:
-        # Activate immediately
-        subscription.start_date = timezone.now()
-        subscription.end_date = timezone.now() + timedelta(days=plan.duration_days)
-        subscription.status = 'ACTIVE'
-        subscription.save()
-        messages.success(request, f"Successfully subscribed to the {plan.name} plan using Wallet!")
-        return redirect('dashboard')
-    
-    # Otherwise, initiate Stripe Checkout
-    import stripe
-    from django.conf import settings
-    from django.urls import reverse
-    
-    stripe.api_key = settings.STRIPE_SECRET_KEY
-    
-    try:
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[
-                {
-                    'price_data': {
-                        'currency': 'usd',
-                        'unit_amount': int(plan.price * 100),
-                        'product_data': {
-                            'name': f"{plan.name} Subscription",
-                        },
-                    },
-                    'quantity': 1,
-                },
-            ],
-            mode='payment',
-            metadata={
-                'type': 'subscription',
-                'transaction_id': tx.id,
-            },
-            success_url=request.build_absolute_uri(reverse('subscriptions:payment_success')),
-            cancel_url=request.build_absolute_uri(reverse('subscriptions:payment_cancel')),
-        )
-        return redirect(checkout_session.url)
-    except Exception as e:
-        messages.error(request, str(e))
-        return redirect('subscriptions:checkout', plan_id=plan.id)
+    # Activate immediately
+    subscription.start_date = timezone.now()
+    subscription.end_date = timezone.now() + timedelta(days=plan.duration_days)
+    subscription.status = 'ACTIVE'
+    subscription.save()
+    messages.success(request, f"Successfully subscribed to the {plan.name} plan using Wallet!")
+    return redirect('dashboard')
 
 def payment_success(request):
     messages.success(request, "Payment successful! Your account has been updated.")
@@ -147,69 +104,28 @@ def process_addon_checkout(request, addon_id):
     addon = get_object_or_404(AddOn, id=addon_id)
     employer_profile = request.user.employer_profile
     
-    use_wallet = request.POST.get('use_wallet') == 'true'
+    if employer_profile.credits >= addon.price:
+        employer_profile.credits -= addon.price
+        employer_profile.save()
+    else:
+        messages.error(request, "Insufficient wallet balance. Please top up your wallet.")
+        return redirect('wallet_topup')
+
+    # Create EmployerAddOn
+    EmployerAddOn.objects.create(
+        employer=employer_profile,
+        addon=addon,
+        quantity=1,
+        is_used=False
+    )
     
-    if use_wallet:
-        if employer_profile.credits >= addon.price:
-            employer_profile.credits -= addon.price
-            employer_profile.save()
-            payment_method = "Wallet Balance"
-        else:
-            messages.error(request, "Insufficient wallet balance.")
-    if use_wallet:
-        # Create EmployerAddOn
-        EmployerAddOn.objects.create(
-            employer=employer_profile,
-            addon=addon,
-            quantity=1,
-            is_used=False
-        )
+    # If the addon is Employer Verification Badge, set is_verified to True immediately
+    if addon.addon_type == 'VERIFICATION':
+        employer_profile.is_verified = True
+        employer_profile.save()
         
-        # If the addon is Employer Verification Badge, set is_verified to True immediately
-        if addon.addon_type == 'VERIFICATION':
-            employer_profile.is_verified = True
-            employer_profile.save()
-            
-        messages.success(request, f"Successfully purchased {addon.name} using Wallet!")
-        return redirect('dashboard')
-        
-    # Otherwise, initiate Stripe Checkout
-    import stripe
-    from django.conf import settings
-    from django.urls import reverse
-    
-    stripe.api_key = settings.STRIPE_SECRET_KEY
-    
-    try:
-        # Create EmployerAddOn as pending (using is_used=False as a placeholder, we might need a pending status, but let's just create it and maybe mark it somehow. Or we just create it in the webhook. Creating it in the webhook is better, but passing its ID is easier if created first. Since EmployerAddOn doesn't have a status field, we will create it when the webhook fires by passing addon.id to metadata)
-        
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[
-                {
-                    'price_data': {
-                        'currency': 'usd',
-                        'unit_amount': int(addon.price * 100),
-                        'product_data': {
-                            'name': f"{addon.name} Add-on",
-                        },
-                    },
-                    'quantity': 1,
-                },
-            ],
-            mode='payment',
-            metadata={
-                'type': 'addon',
-                'employer_id': employer_profile.id,
-                'addon_id': addon.id,
-            },
-            success_url=request.build_absolute_uri(reverse('subscriptions:payment_success')),
-            cancel_url=request.build_absolute_uri(reverse('subscriptions:payment_cancel')),
-        )
-        return redirect(checkout_session.url)
-    except Exception as e:
-        messages.error(request, str(e))
-        return redirect('subscriptions:checkout_addon', addon_id=addon.id)
+    messages.success(request, f"Successfully purchased {addon.name} using Wallet!")
+    return redirect('dashboard')
 
 @login_required
 def billing_dashboard(request):
