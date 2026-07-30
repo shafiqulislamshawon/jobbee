@@ -36,3 +36,19 @@ class TrustedCompanyForm(forms.ModelForm):
             'logo': forms.ClearableFileInput(attrs={'class': 'w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-accent focus:ring-accent sm:text-sm'}),
             'order': forms.NumberInput(attrs={'class': 'w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-accent focus:ring-accent sm:text-sm'}),
         }
+
+from .models import Testimonial
+
+class TestimonialForm(forms.ModelForm):
+    class Meta:
+        model = Testimonial
+        fields = '__all__'
+        widgets = {
+            'quote': forms.Textarea(attrs={'class': 'w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-accent focus:ring-accent sm:text-sm', 'rows': 4}),
+            'author_name': forms.TextInput(attrs={'class': 'w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-accent focus:ring-accent sm:text-sm'}),
+            'author_title': forms.TextInput(attrs={'class': 'w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-accent focus:ring-accent sm:text-sm'}),
+            'author_avatar': forms.ClearableFileInput(attrs={'class': 'w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-accent focus:ring-accent sm:text-sm'}),
+            'badge_initial': forms.TextInput(attrs={'class': 'w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-accent focus:ring-accent sm:text-sm', 'maxlength': '5'}),
+            'hired_role': forms.TextInput(attrs={'class': 'w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-accent focus:ring-accent sm:text-sm'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'h-4 w-4 rounded border-gray-300 text-accent focus:ring-accent'}),
+        }

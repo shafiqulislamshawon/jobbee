@@ -7,21 +7,34 @@ django.setup()
 from jobs.models import JobCategory
 
 categories = [
-    "Sales", "Automotive", "Construction", "Accounting", "IT & Telecommunication", 
-    "Education/Training", "Restaurant", "Health Care", "Garments/Textile", 
-    "Bank/ Non-Bank Fin. Institution", "Engineer/Architects", "HR/Org. Development", 
-    "Data Entry/Computer Operator", "Mechanic/Technician", "Nurse", "Delivery Man", 
-    "Sales Representative (SR)", "Production/Operation", "Hospitality/ Travel/ Tourism", 
-    "Customer Service/Call Centre", "Marketing/Sales", "Media/Ad./Event Mgt.", 
-    "Pharmaceutical", "Chef/Cook", "Agro (Plant/Animal/Fisheries)", "NGO/Development", 
-    "Research/Consultancy", "Design/Creative", "Security/Support Service", "Security Guard"
+    "Accounting/Finance",
+    "Bank/Non-Bank Fin. Institution",
+    "Commercial/Supply Chain",
+    "Education/Training",
+    "Engineer/Architect",
+    "Garments/Textile",
+    "HR/Org. Development",
+    "IT/Telecommunication",
+    "Marketing/Sales",
+    "Media/Advertisement/Event Mgt.",
+    "Medical/Pharma",
+    "NGO/Development",
+    "Customer Support/Call Centre",
+    "Design/Creative",
+    "Production/Operation",
+    "Hospitality/Travel/Tourism",
+    "Beauty Care/Health & Fitness",
+    "Electrician/Construction/Repair",
+    "Secretary/Receptionist",
+    "Data Entry/Operator/BPO",
+    "Driving/Motor Technician",
+    "Security/Support Service",
+    "Law/Legal",
+    "Research/Consultancy",
+    "Agriculture/Plant/Animal"
 ]
 
-for cat_name in categories:
-    cat, created = JobCategory.objects.get_or_create(name=cat_name)
-    if created:
-        print(f"Created category: {cat_name}")
-    else:
-        print(f"Category already exists: {cat_name}")
+for name in categories:
+    JobCategory.objects.get_or_create(name=name)
 
-print("Done seeding categories!")
+print("Categories seeded successfully.")

@@ -61,9 +61,9 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
         <div class="flex items-start justify-between">
             <div>
-                <h1 class="text-3xl font-extrabold text-primary mb-2">{{ job.title }}</h1>
+                <h1 class="text-3xl font-extrabold text-black mb-2">{{ job.title }}</h1>
                 <div class="flex items-center gap-4 mb-6">
-                    <a href="{% url 'company_detail' job.employer.employer_profile.id %}" class="text-lg font-medium text-accent hover:underline flex items-center">
+                    <a href="{% url 'company_detail' job.employer.employer_profile.id %}" class="text-lg text-black font-medium text-accent hover:underline flex items-center">
                         {{ job.employer.employer_profile.company_name|default:job.employer.username }}
                         {% if job.employer.employer_profile.is_verified %}
                         <svg class="h-5 w-5 text-blue-500 ml-1" fill="currentColor" viewBox="0 0 20 20" title="Verified Employer">
@@ -100,7 +100,11 @@
                         <svg class="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         </svg>
-                        {{ job.location|default:"Anywhere" }}
+                        {% if job.anywhere_in_bd %}
+                            Anywhere in Bangladesh
+                        {% else %}
+                            {% if job.sub_location %}{{ job.sub_location }}, {% endif %}{{ job.location.name|default:"Anywhere" }}
+                        {% endif %}
                     </span>
                     <span class="flex items-center">
                         <svg class="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -114,13 +118,22 @@
                         </svg>
                         {{ job.get_employment_type_display }}
                     </span>
-                    {% if job.salary_min %}
-                    <span class="flex items-center text-gray-700">
-                        <svg class="h-5 w-5 mr-2 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        {{ job.salary_min|currency }} {% if job.salary_max %} - {{ job.salary_max|currency }}{% endif %}
-                    </span>
+                    {% if job.show_salary %}
+                        {% if job.is_salary_negotiable %}
+                        <span class="flex items-center text-gray-700">
+                            <svg class="h-5 w-5 mr-2 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Salary: Negotiable
+                        </span>
+                        {% elif job.salary_min %}
+                        <span class="flex items-center text-gray-700">
+                            <svg class="h-5 w-5 mr-2 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {{ job.salary_min|currency }} {% if job.salary_max %} - {{ job.salary_max|currency }}{% endif %}
+                        </span>
+                        {% endif %}
                     {% endif %}
                     <span class="flex items-center">
                         <svg class="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -167,7 +180,11 @@
                     {% endwith %}
                 {% endif %}
             {% elif request.user.is_employer %}
-                <!-- Employer sees nothing or edit button -->
+                {% if request.user == job.employer %}
+                <a href="{% url 'edit_job' job.id %}" class="inline-block bg-accent text-white font-medium px-8 py-3 rounded-lg hover:opacity-90 transition shadow-sm text-center">
+                    Edit Job
+                </a>
+                {% endif %}
             {% else %}
                 <a href="{% url 'login' %}?next={{ request.path }}" class="inline-block bg-primary text-white font-medium px-8 py-3 rounded-lg hover:bg-gray-800 transition shadow-sm">
                     Sign in to Apply
@@ -179,7 +196,7 @@
     <!-- Details -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 space-y-8">
         <div>
-            <h2 class="text-xl font-bold text-primary mb-4">Job Description</h2>
+            <h2 class="text-xl font-bold text-primary mb-4">Job Context</h2>
             <div class="prose prose-gray max-w-none text-gray-700 whitespace-pre-wrap">{{ job.description }}</div>
         </div>
         
@@ -192,8 +209,15 @@
         
         {% if job.requirements %}
         <div>
-            <h2 class="text-xl font-bold text-primary mb-4">Requirements</h2>
+            <h2 class="text-xl font-bold text-primary mb-4">Additional Requirements</h2>
             <div class="prose prose-gray max-w-none text-gray-700 whitespace-pre-wrap">{{ job.requirements }}</div>
+        </div>
+        {% endif %}
+        
+        {% if job.professional_qualifications %}
+        <div>
+            <h2 class="text-xl font-bold text-primary mb-4">Professional Qualifications</h2>
+            <div class="prose prose-gray max-w-none text-gray-700 whitespace-pre-wrap">{{ job.professional_qualifications }}</div>
         </div>
         {% endif %}
         

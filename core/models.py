@@ -69,3 +69,24 @@ class TrustedCompany(models.Model):
 
     def __str__(self):
         return self.name
+
+class Testimonial(models.Model):
+    quote = models.TextField(help_text="The testimonial text")
+    author_name = models.CharField(max_length=100)
+    author_title = models.CharField(max_length=100, help_text="e.g. Product Designer at Airbnb")
+    author_avatar = models.ImageField(upload_to='testimonials/', null=True, blank=True, help_text="Upload an avatar. If empty, a generated avatar will be used.")
+    
+    # Hired Card Badge
+    badge_initial = models.CharField(max_length=5, default="a", help_text="Initial for the hired badge (e.g. 'a')")
+    hired_role = models.CharField(max_length=100, default="Product Designer")
+    
+    is_active = models.BooleanField(default=True, help_text="Show this testimonial on the homepage")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Testimonial"
+        verbose_name_plural = "Testimonials"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.author_name} - {self.author_title}"

@@ -64,9 +64,10 @@ class CustomUserCreationForm(UserCreationForm):
 class SeekerProfileForm(forms.ModelForm):
     class Meta:
         model = SeekerProfile
-        fields = ['profile_picture', 'full_name', 'phone_number', 'alternative_phone', 'address', 'portfolio_url', 'github_url', 'linkedin_url', 'twitter_url', 'career_summary', 'skills', 'gender', 'age_group']
+        fields = ['profile_picture', 'full_name', 'phone_number', 'alternative_phone', 'address', 'portfolio_url', 'github_url', 'linkedin_url', 'twitter_url', 'job_category', 'career_summary', 'skills', 'gender', 'age_group']
         widgets = {
             'profile_picture': forms.FileInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
+            'job_category': forms.Select(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
             'career_summary': forms.Textarea(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md', 'rows': 4}),
             'portfolio_url': forms.URLInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),
             'github_url': forms.URLInput(attrs={'class': 'shadow-sm focus:ring-accent focus:border-accent block w-full sm:text-sm border-gray-300 rounded-md'}),

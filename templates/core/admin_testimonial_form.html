@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}{{ title }} - Jobbee{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-extrabold text-primary">{{ title }}</h1>
+        </div>
+        <a href="{% url 'admin_testimonials' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            &larr; Back to Testimonials
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <form method="post" enctype="multipart/form-data" class="p-6 space-y-6">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="rounded-md bg-red-50 p-4 mb-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800">Please correct the errors below.</h3>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="space-y-4">
+                <div>
+                    <label for="{{ form.quote.id_for_label }}" class="block text-sm font-medium text-gray-700">Testimonial Quote</label>
+                    <div class="mt-1">{{ form.quote }}</div>
+                    {% if form.quote.help_text %}<p class="mt-1 text-xs text-gray-500">{{ form.quote.help_text }}</p>{% endif %}
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.author_name.id_for_label }}" class="block text-sm font-medium text-gray-700">Author Name</label>
+                        <div class="mt-1">{{ form.author_name }}</div>
+                    </div>
+                    <div>
+                        <label for="{{ form.author_title.id_for_label }}" class="block text-sm font-medium text-gray-700">Author Title</label>
+                        <div class="mt-1">{{ form.author_title }}</div>
+                        {% if form.author_title.help_text %}<p class="mt-1 text-xs text-gray-500">{{ form.author_title.help_text }}</p>{% endif %}
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.author_avatar.id_for_label }}" class="block text-sm font-medium text-gray-700">Author Avatar (Optional)</label>
+                    <div class="mt-1">{{ form.author_avatar }}</div>
+                    {% if form.author_avatar.help_text %}<p class="mt-1 text-xs text-gray-500">{{ form.author_avatar.help_text }}</p>{% endif %}
+                </div>
+                
+                <hr class="border-gray-100 my-6">
+                
+                <h3 class="text-lg font-medium text-gray-900">Right Graphic (Hired Badge)</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.hired_role.id_for_label }}" class="block text-sm font-medium text-gray-700">Hired Role</label>
+                        <div class="mt-1">{{ form.hired_role }}</div>
+                    </div>
+                    <div>
+                        <label for="{{ form.badge_initial.id_for_label }}" class="block text-sm font-medium text-gray-700">Badge Initial</label>
+                        <div class="mt-1">{{ form.badge_initial }}</div>
+                        {% if form.badge_initial.help_text %}<p class="mt-1 text-xs text-gray-500">{{ form.badge_initial.help_text }}</p>{% endif %}
+                    </div>
+                </div>
+                
+                <hr class="border-gray-100 my-6">
+                
+                <div class="flex items-center">
+                    {{ form.is_active }}
+                    <label for="{{ form.is_active.id_for_label }}" class="ml-2 block text-sm text-gray-900">
+                        Active (Show on homepage)
+                    </label>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-end">
+                <button type="submit" class="inline-flex justify-center py-2 px-6 border border-transparent shadow-sm text-sm font-bold rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Save Testimonial
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

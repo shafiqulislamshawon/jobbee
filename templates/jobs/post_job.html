@@ -19,8 +19,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Post a New Job</h2>
-                        <p class="mt-1 text-sm text-gray-500">Find the perfect candidate by providing details about the opportunity.</p>
+                        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">{% if is_edit %}Edit Job Post{% else %}Post a New Job{% endif %}</h2>
+                        <p class="mt-1 text-sm text-gray-500">{% if is_edit %}Update the details for this job opportunity.{% else %}Find the perfect candidate by providing details about the opportunity.{% endif %}</p>
                     </div>
                 </div>
             </div>
@@ -80,37 +80,67 @@
 
                         <!-- Location -->
                         <div class="sm:col-span-2">
-                            <label for="{{ form.location.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Location</label>
-                            {% render_field form.location class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" placeholder="e.g. New York, NY or Remote" %}
-                        </div>
-                        
-                        <!-- Salary Min/Max -->
-                        <div>
-                            <label for="{{ form.salary_min.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Minimum Salary</label>
-                            {% render_field form.salary_min class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" placeholder="0" %}
-                        </div>
-                        
-                        <div>
-                            <label for="{{ form.salary_max.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Maximum Salary</label>
-                            {% render_field form.salary_max class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" placeholder="0" %}
+                            <label for="{{ form.location.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Location (Country)</label>
+                            {% render_field form.location class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" %}
                         </div>
 
-                        <!-- Description -->
-                        <div class="sm:col-span-2">
-                            <label for="{{ form.description.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Job Description</label>
-                            {% render_field form.description class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" rows="5" placeholder="Describe the role in detail..." %}
+                        <div>
+                            <label for="{{ form.sub_location.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Sub-location / City</label>
+                            {% render_field form.sub_location class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" placeholder="e.g. Dhaka, Banani" %}
                         </div>
 
-                        <!-- Requirements -->
-                        <div class="sm:col-span-2">
-                            <label for="{{ form.requirements.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Requirements</label>
-                            {% render_field form.requirements class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" rows="3" placeholder="What are the key requirements?" %}
+                        <div class="flex items-center mt-8">
+                            {% render_field form.anywhere_in_bd class="h-5 w-5 text-accent focus:ring-accent border-gray-300 rounded" %}
+                            <label for="{{ form.anywhere_in_bd.id_for_label }}" class="ml-3 block text-sm font-bold text-gray-700">Anywhere in Bangladesh</label>
                         </div>
                         
-                        <!-- Responsibilities -->
+                        <!-- Salary Section -->
+                        <div class="sm:col-span-2 border-t border-gray-100 pt-6 mt-4">
+                            <h3 class="text-lg font-bold text-gray-900 mb-4">Salary Details</h3>
+                            
+                            <div class="flex flex-wrap gap-6 mb-6">
+                                <div class="flex items-center">
+                                    {% render_field form.is_salary_negotiable class="h-5 w-5 text-accent focus:ring-accent border-gray-300 rounded" id="id_is_salary_negotiable" %}
+                                    <label for="{{ form.is_salary_negotiable.id_for_label }}" class="ml-3 block text-sm font-bold text-gray-700">Salary is Negotiable</label>
+                                </div>
+                                <div class="flex items-center">
+                                    {% render_field form.show_salary class="h-5 w-5 text-accent focus:ring-accent border-gray-300 rounded" %}
+                                    <label for="{{ form.show_salary.id_for_label }}" class="ml-3 block text-sm font-bold text-gray-700">Show Salary on Public Post</label>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2" id="salary-fields-container">
+                                <div>
+                                    <label for="{{ form.salary_min.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Minimum Salary</label>
+                                    {% render_field form.salary_min class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" placeholder="0" %}
+                                </div>
+                                
+                                <div>
+                                    <label for="{{ form.salary_max.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Maximum Salary</label>
+                                    {% render_field form.salary_max class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" placeholder="0" %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Job Details -->
+                        <div class="sm:col-span-2 border-t border-gray-100 pt-6 mt-4">
+                            <label for="{{ form.description.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Job Context</label>
+                            {% render_field form.description class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" rows="5" placeholder="Provide the context and background for this role..." %}
+                        </div>
+                        
                         <div class="sm:col-span-2">
                             <label for="{{ form.responsibilities.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Responsibilities</label>
-                            {% render_field form.responsibilities class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" rows="3" placeholder="What will they do day-to-day?" %}
+                            {% render_field form.responsibilities class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" rows="5" placeholder="What will they do day-to-day?" %}
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.requirements.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Additional Requirements</label>
+                            {% render_field form.requirements class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" rows="4" placeholder="Any additional requirements?" %}
+                        </div>
+                        
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.professional_qualifications.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Professional Qualifications (If any)</label>
+                            {% render_field form.professional_qualifications class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" rows="3" placeholder="e.g. CPA, PMP, AWS Certified" %}
                         </div>
 
                         <!-- Skills -->
@@ -125,19 +155,26 @@
                             {% render_field form.experience class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" placeholder="e.g. 3-5 Years" %}
                         </div>
                         
-                        <div>
-                            <label for="{{ form.education.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Education Required</label>
-                            {% render_field form.education class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" placeholder="e.g. Bachelors Degree" %}
+                        <div class="row-span-2">
+                            <label class="block text-sm font-bold text-gray-700 mb-3">Education Level (Select all that apply)</label>
+                            <div class="space-y-2 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                {% for checkbox in form.education %}
+                                <div class="flex items-center">
+                                    {{ checkbox.tag }}
+                                    <label for="{{ checkbox.id_for_label }}" class="ml-2 block text-sm text-gray-700">{{ checkbox.choice_label }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
                         </div>
                         
                         <!-- Benefits -->
-                        <div class="sm:col-span-2">
+                        <div>
                             <label for="{{ form.benefits.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Benefits</label>
-                            {% render_field form.benefits class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" rows="2" placeholder="What perks do you offer?" %}
+                            {% render_field form.benefits class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" rows="3" placeholder="What perks do you offer?" %}
                         </div>
 
                         <!-- Deadline -->
-                        <div class="sm:col-span-2 md:col-span-1">
+                        <div>
                             <label for="{{ form.deadline.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Application Deadline (Optional)</label>
                             {% render_field form.deadline class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" %}
                         </div>
@@ -148,7 +185,7 @@
                             Cancel
                         </a>
                         <button type="submit" class="px-8 py-3 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-accent hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition-all duration-200">
-                            Publish Job
+                            {% if is_edit %}Update Job{% else %}Publish Job{% endif %}
                         </button>
                     </div>
                 </form>
@@ -198,6 +235,26 @@
                 direction: "asc"
             }
         });
+
+        // Salary Toggle Logic
+        const negotiableCheckbox = document.getElementById('id_is_salary_negotiable');
+        const salaryContainer = document.getElementById('salary-fields-container');
+        const salaryInputs = salaryContainer.querySelectorAll('input');
+
+        function toggleSalaryFields() {
+            if (negotiableCheckbox.checked) {
+                salaryContainer.style.opacity = '0.5';
+                salaryInputs.forEach(input => input.disabled = true);
+            } else {
+                salaryContainer.style.opacity = '1';
+                salaryInputs.forEach(input => input.disabled = false);
+            }
+        }
+
+        if (negotiableCheckbox) {
+            negotiableCheckbox.addEventListener('change', toggleSalaryFields);
+            toggleSalaryFields(); // initial run
+        }
     });
 </script>
 {% endblock %}

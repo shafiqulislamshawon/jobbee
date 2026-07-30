@@ -25,7 +25,7 @@ class Job(models.Model):
     EMPLOYMENT_TYPES = (
         ('FULL_TIME', 'Full Time'),
         ('PART_TIME', 'Part Time'),
-        ('CONTRACT', 'Contract'),
+        ('CONTRACT', 'Contractual'),
         ('INTERNSHIP', 'Internship'),
     )
     REMOTE_STATUS = (
@@ -50,15 +50,20 @@ class Job(models.Model):
     currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default='USD')
     salary_min = models.PositiveIntegerField(blank=True, null=True, db_index=True)
     salary_max = models.PositiveIntegerField(blank=True, null=True, db_index=True)
+    is_salary_negotiable = models.BooleanField(default=False)
+    show_salary = models.BooleanField(default=True)
     employment_type = models.CharField(max_length=20, choices=EMPLOYMENT_TYPES, default='FULL_TIME', db_index=True)
     remote_status = models.CharField(max_length=20, choices=REMOTE_STATUS, default='ON_SITE', db_index=True)
     
     employer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='jobs_posted')
     location = CountryField(blank=True, blank_label='(select country)', db_index=True)
+    sub_location = models.CharField(max_length=255, blank=True)
+    anywhere_in_bd = models.BooleanField(default=False, verbose_name="Anywhere in Bangladesh")
     benefits = models.TextField(blank=True)
     skills = models.CharField(max_length=255, blank=True, help_text='Comma-separated skills')
     experience = models.CharField(max_length=100, blank=True)
-    education = models.CharField(max_length=100, blank=True)
+    education = models.CharField(max_length=255, blank=True)
+    professional_qualifications = models.TextField(blank=True)
     
     deadline = models.DateField(blank=True, null=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)

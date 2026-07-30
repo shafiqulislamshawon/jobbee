@@ -11,6 +11,8 @@ sitemaps = {
 }
 
 from core.views import frontend_admin_dashboard, admin_toggle_user_status, admin_delete_job, privacy_policy, terms_of_service, help_center, admin_toggle_employer_verification, export_platform_data_csv, admin_hero_settings, admin_trusted_companies, admin_delete_trusted_company, admin_bkash_approve, admin_bkash_reject
+from core.views import admin_testimonials, admin_create_testimonial, admin_edit_testimonial, admin_delete_testimonial
+from core.views import about_us, services, contact_us
 from blog.admin_views import admin_blog_dashboard, admin_create_post, admin_edit_post, admin_delete_post, admin_blog_categories, admin_delete_category
 from subscriptions.admin_views import admin_ads_dashboard, admin_ads_approve, admin_ads_reject, admin_coupons, admin_toggle_coupon, admin_edit_coupon
 from django.contrib.sitemaps.views import sitemap
@@ -38,6 +40,12 @@ urlpatterns = [
     path('platform-admin/bkash/<int:request_id>/approve/', admin_bkash_approve, name='admin_bkash_approve'),
     path('platform-admin/bkash/<int:request_id>/reject/', admin_bkash_reject, name='admin_bkash_reject'),
     
+    # Testimonials Admin
+    path('platform-admin/testimonials/', admin_testimonials, name='admin_testimonials'),
+    path('platform-admin/testimonials/create/', admin_create_testimonial, name='admin_create_testimonial'),
+    path('platform-admin/testimonials/<int:pk>/edit/', admin_edit_testimonial, name='admin_edit_testimonial'),
+    path('platform-admin/testimonials/<int:pk>/delete/', admin_delete_testimonial, name='admin_delete_testimonial'),
+    
     # Blog Admin
     path('platform-admin/blog/', include([
         path('', admin_blog_dashboard, name='admin_blog_dashboard'),
@@ -62,6 +70,9 @@ urlpatterns = [
     path('privacy/', privacy_policy, name='privacy'),
     path('terms/', terms_of_service, name='terms'),
     path('help/', help_center, name='help'),
+    path('about/', about_us, name='about_us'),
+    path('services/', services, name='services'),
+    path('contact/', contact_us, name='contact_us'),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     path('i18n/', include('django.conf.urls.i18n')),
     path('accounts/', include('accounts.urls')),

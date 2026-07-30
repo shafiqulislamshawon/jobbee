@@ -133,6 +133,7 @@ class SeekerProfile(models.Model):
     twitter_url = models.URLField(blank=True, null=True, verbose_name="Other Social Media URL")
     
     career_summary = models.TextField(blank=True)
+    job_category = models.ForeignKey('jobs.JobCategory', on_delete=models.SET_NULL, null=True, blank=True, related_name='seekers')
     skills = models.CharField(max_length=255, blank=True, help_text='Comma-separated skills', db_index=True)
     languages = models.CharField(max_length=255, blank=True, help_text='Comma-separated languages')
     extracurricular_activities = models.TextField(blank=True)

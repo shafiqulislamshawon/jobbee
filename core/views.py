@@ -224,3 +224,56 @@ def export_platform_data_csv(request):
 
 def help_center(request):
     return render(request, 'core/help.html')
+
+# Testimonial CMS Views
+@user_passes_test(lambda u: u.is_staff)
+def admin_testimonials(request):
+    from .models import Testimonial
+    testimonials = Testimonial.objects.all()
+    return render(request, 'core/admin_testimonials.html', {'testimonials': testimonials})
+
+@user_passes_test(lambda u: u.is_staff)
+def admin_create_testimonial(request):
+    from .forms import TestimonialForm
+    if request.method == 'POST':
+        form = TestimonialForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Testimonial created successfully!')
+            return redirect('admin_testimonials')
+    else:
+        form = TestimonialForm()
+    return render(request, 'core/admin_testimonial_form.html', {'form': form, 'title': 'Create Testimonial'})
+
+@user_passes_test(lambda u: u.is_staff)
+def admin_edit_testimonial(request, pk):
+    from .models import Testimonial
+    from .forms import TestimonialForm
+    testimonial = get_object_or_404(Testimonial, pk=pk)
+    if request.method == 'POST':
+        form = TestimonialForm(request.POST, request.FILES, instance=testimonial)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Testimonial updated successfully!')
+            return redirect('admin_testimonials')
+    else:
+        form = TestimonialForm(instance=testimonial)
+    return render(request, 'core/admin_testimonial_form.html', {'form': form, 'title': 'Edit Testimonial', 'testimonial': testimonial})
+
+@user_passes_test(lambda u: u.is_staff)
+def admin_delete_testimonial(request, pk):
+    from .models import Testimonial
+    testimonial = get_object_or_404(Testimonial, pk=pk)
+    if request.method == 'POST':
+        testimonial.delete()
+        messages.success(request, 'Testimonial deleted successfully!')
+    return redirect('admin_testimonials')
+
+def about_us(request):
+    return render(request, 'core/about.html')
+
+def services(request):
+    return render(request, 'core/services.html')
+
+def contact_us(request):
+    return render(request, 'core/contact.html')

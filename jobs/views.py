@@ -11,7 +11,7 @@ from django.views.decorators.cache import cache_page
 
 def home(request):
     from .models import JobCategory
-    recent_jobs = Job.objects.select_related('employer__employer_profile').filter(is_active=True).order_by('-created_at')[:6]
+    featured_jobs = Job.objects.select_related('employer__employer_profile').filter(is_active=True, is_featured=True).order_by('-created_at')[:6]
     
     # Calculate Dynamic Stats
     active_jobs_count = Job.objects.filter(is_active=True).count()
@@ -39,9 +39,13 @@ def home(request):
     # Pricing Plans for cards
     from subscriptions.models import Plan
     plans = Plan.objects.all().order_by('price')
+    
+    from core.models import Testimonial
+    testimonial = Testimonial.objects.filter(is_active=True).first()
         
     return render(request, 'jobs/home.html', {
-        'recent_jobs': recent_jobs,
+        'testimonial': testimonial,
+        'featured_jobs': featured_jobs,
         'active_jobs_count': active_jobs_count,
         'employers_count': employers_count,
         'avg_hours': avg_hours,
@@ -120,6 +124,34 @@ def post_job(request):
         form = JobForm(subscription=subscription)
         
     return render(request, 'jobs/post_job.html', {'form': form})
+
+from django.shortcuts import get_object_or_404
+
+def edit_job(request, job_id):
+    if not request.user.is_authenticated or not hasattr(request.user, 'is_employer') or not request.user.is_employer:
+        messages.error(request, 'Only employers can edit jobs.')
+        return redirect('home')
+
+    job = get_object_or_404(Job, id=job_id, employer=request.user)
+    
+    try:
+        subscription = request.user.employer_profile.subscription
+    except Exception:
+        subscription = None
+
+    if request.method == 'POST':
+        form = JobForm(request.POST, instance=job, subscription=subscription)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Job updated successfully!')
+            return redirect('job_detail', job_id=job.id)
+    else:
+        initial_data = {}
+        if job.education:
+            initial_data['education'] = [e.strip() for e in job.education.split(',')] if ',' in job.education else [job.education]
+        form = JobForm(instance=job, subscription=subscription, initial=initial_data)
+
+    return render(request, 'jobs/post_job.html', {'form': form, 'job': job, 'is_edit': True})
 
 def job_list(request):
     query = request.GET.get('q', '')
@@ -520,3 +552,14 @@ def take_assessment(request, assessment_id):
         return redirect('assessments')
         
     return render(request, 'jobs/take_assessment.html', {'assessment': assessment})
+
+def employer_list(request):
+    query = request.GET.get('q', '')
+    employers = EmployerProfile.objects.filter(is_verified=True).annotate(
+        active_job_count=Count('user__jobs_posted', filter=Q(user__jobs_posted__is_active=True))
+    ).order_by('-active_job_count', 'company_name')
+    
+    if query:
+        employers = employers.filter(company_name__icontains=query)
+        
+    return render(request, 'jobs/employer_list.html', {'employers': employers, 'query': query})

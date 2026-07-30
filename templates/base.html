@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Jobbee{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'favicon.png' %}">
     
     {% block seo %}
     <meta name="description" content="{% block meta_description %}Jobbee is the leading job portal for finding remote and hybrid opportunities.{% endblock %}">
@@ -43,9 +44,21 @@
                         sans: ['"Inter Tight"', 'sans-serif'],
                     },
                     colors: {
-                        primary: 'var(--color-primary)',
-                        secondary: 'var(--color-secondary)',
-                        accent: 'var(--color-accent)',
+                        primary: 'var(--color-primary, #000000)',
+                        secondary: 'var(--color-secondary, #ffffff)',
+                        accent: 'var(--color-accent, #febf12)',
+                        blue: {
+                            50: '#fffdf0',
+                            100: '#fff9db',
+                            200: '#fff2b2',
+                            300: '#ffe880',
+                            400: '#ffdb4d',
+                            500: '#febf12',
+                            600: '#febf12',
+                            700: '#e0a70f',
+                            800: '#b38200',
+                            900: '#4d3800',
+                        }
                     }
                 }
             }
@@ -54,14 +67,19 @@
 
     <style>
         :root {
-            --color-primary: #000000;
+            --color-primary: #febf12;
             --color-secondary: #ffffff;
-            --color-accent: #3b82f6;
+            --color-accent: #febf12;
         }
         body {
             font-family: 'Inter Tight', sans-serif;
             background-color: #f9fafb;
-            color: var(--color-primary);
+            color: #000000;
+        }
+
+        /* Force black text on primary buttons for readability */
+        .bg-blue-600, .bg-accent, .bg-primary, .hover\:bg-blue-700:hover, .hover\:bg-blue-600:hover {
+            color: #000000 !important;
         }
         
         /* Global On-Scroll Animation */
@@ -126,8 +144,14 @@
                         </a>
                     </div>
                     <div class="hidden sm:ml-8 sm:flex sm:space-x-8 items-center">
-                        <a href="{% url 'job_list' %}" class="text-gray-500 hover:text-gray-900 text-sm font-bold transition-colors tracking-wide">Find Jobs</a>
-                        <a href="{% url 'post_list' %}" class="text-gray-500 hover:text-gray-900 text-sm font-bold transition-colors tracking-wide">Blog</a>
+                        <a href="{% url 'job_list' %}" class="text-gray-500 hover:text-gray-900 text-sm font-bold transition-colors tracking-wide">Jobs</a>
+                        <a href="{% url 'employer_list' %}" class="text-gray-500 hover:text-gray-900 text-sm font-bold transition-colors tracking-wide">Employers</a>
+                        {% if not request.user.is_authenticated or not request.user.is_seeker %}
+                        <a href="{% url 'subscriptions:pricing' %}" class="text-gray-500 hover:text-gray-900 text-sm font-bold transition-colors tracking-wide">Plans</a>
+                        {% endif %}
+                        <a href="{% url 'about_us' %}" class="text-gray-500 hover:text-gray-900 text-sm font-bold transition-colors tracking-wide">About us</a>
+                        <a href="{% url 'services' %}" class="text-gray-500 hover:text-gray-900 text-sm font-bold transition-colors tracking-wide">Services</a>
+                        <a href="{% url 'contact_us' %}" class="text-gray-500 hover:text-gray-900 text-sm font-bold transition-colors tracking-wide">Contact us</a>
                         
                         <form action="{% url 'set_language' %}" method="post" class="ml-2 relative flex items-center">
                             {% csrf_token %}
@@ -170,6 +194,7 @@
                         {% if user.is_staff %}
                             <a href="{% url 'frontend_admin' %}" class="text-gray-600 hover:text-primary text-sm font-bold transition-colors bg-gray-100 px-3 py-1 rounded-lg">Platform CMS</a>
                         {% endif %}
+                        <a href="{% url 'account_change_password' %}" class="text-gray-600 hover:text-gray-900 text-sm font-bold transition-colors">Password change</a>
                         <form method="post" action="{% url 'logout' %}" class="inline">
                             {% csrf_token %}
                             <button type="submit" class="text-gray-600 hover:text-red-600 text-sm font-bold transition-colors">Logout</button>
@@ -193,11 +218,16 @@
             </div>
         </div>
 
-        <!-- Mobile menu -->
         <div class="sm:hidden hidden" id="mobile-menu">
             <div class="pt-2 pb-3 space-y-1">
-                <a href="{% url 'job_list' %}" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition">Find Jobs</a>
-                <a href="{% url 'post_list' %}" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition">Blog</a>
+                <a href="{% url 'job_list' %}" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition">Jobs</a>
+                <a href="{% url 'employer_list' %}" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition">Employers</a>
+                {% if not request.user.is_authenticated or not request.user.is_seeker %}
+                <a href="{% url 'subscriptions:pricing' %}" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition">Plans</a>
+                {% endif %}
+                <a href="{% url 'about_us' %}" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition">About us</a>
+                <a href="{% url 'services' %}" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition">Services</a>
+                <a href="{% url 'contact_us' %}" class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition">Contact us</a>
             </div>
             <div class="pt-4 pb-3 border-t border-gray-200 bg-gray-50">
                 <div class="space-y-1">
@@ -212,6 +242,7 @@
                         {% if user.is_staff %}
                             <a href="{% url 'frontend_admin' %}" class="block px-4 py-2 text-base font-bold text-primary hover:text-primary-dark hover:bg-gray-100 transition">Platform CMS</a>
                         {% endif %}
+                        <a href="{% url 'account_change_password' %}" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition">Password change</a>
                         <form method="post" action="{% url 'logout' %}">
                             {% csrf_token %}
                             <button type="submit" class="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition">Logout</button>
@@ -242,7 +273,7 @@
 
     <!-- Global CTA -->
     {% block global_cta %}
-    <div class="reveal-on-scroll bg-blue-600">
+    <div class="reveal-on-scroll bg-gradient-to-br from-[#2563eb] to-[#1d4ed8]">
         <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between">
             <h2 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
                 <span class="block">Ready to hire top talent?</span>

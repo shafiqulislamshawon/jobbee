@@ -167,6 +167,26 @@
             </div>
         </div>
 
+        <!-- Languages -->
+        <div class="bg-white shadow-sm sm:rounded-xl border border-gray-200 overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 class="text-lg font-bold text-gray-900">Languages</h3>
+                <a href="{% url 'edit_additional_info' %}" class="inline-flex items-center text-sm font-medium text-accent hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-md transition-colors">
+                    <svg class="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    Edit
+                </a>
+            </div>
+            <div class="p-6">
+                {% if profile.languages %}
+                <div class="flex flex-wrap gap-2">
+                    <p class="text-gray-900 font-medium leading-relaxed">{{ profile.languages }}</p>
+                </div>
+                {% else %}
+                <p class="text-gray-400 italic">No languages added.</p>
+                {% endif %}
+            </div>
+        </div>
+
         <!-- Experience -->
         <div class="bg-white shadow-sm sm:rounded-xl border border-gray-200 overflow-hidden">
             <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
@@ -271,6 +291,23 @@
                 <div class="p-6">
                     <p class="text-gray-400 italic">No certifications added.</p>
                 </div>
+                {% endif %}
+            </div>
+        </div>
+        <!-- Extracurricular Activities -->
+        <div class="bg-white shadow-sm sm:rounded-xl border border-gray-200 overflow-hidden mb-8">
+            <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 class="text-lg font-bold text-gray-900">Extracurricular Activities</h3>
+                <a href="{% url 'edit_additional_info' %}" class="inline-flex items-center text-sm font-medium text-accent hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-md transition-colors">
+                    <svg class="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    Edit
+                </a>
+            </div>
+            <div class="p-6">
+                {% if profile.extracurricular_activities %}
+                <p class="text-gray-700 leading-relaxed">{{ profile.extracurricular_activities|linebreaksbr }}</p>
+                {% else %}
+                <p class="text-gray-400 italic">No extracurricular activities added.</p>
                 {% endif %}
             </div>
         </div>

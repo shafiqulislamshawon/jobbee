@@ -303,6 +303,81 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
+<!-- TRENDING ROLES -->
+<div class="bg-gray-50 py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-10">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">Featured Jobs</h2>
+            <p class="text-sm text-gray-500">Exclusive positions available right now.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for job in featured_jobs %}
+            <a href="{% url 'job_detail' job.id %}" class="job-card bg-white rounded-2xl p-6 border border-gray-100 relative group flex flex-col h-full">
+                <!-- Top Row -->
+                <div class="flex items-start justify-between mb-6">
+                    <div class="flex items-center">
+                        {% if job.employer.employer_profile.logo %}
+                        <div class="h-12 w-12 rounded-xl bg-gray-50 flex items-center justify-center p-2 mr-4 border border-gray-100">
+                            <img src="{{ job.employer.employer_profile.logo.url }}" alt="Logo" class="w-full h-full object-contain">
+                        </div>
+                        {% else %}
+                        <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-100 to-purple-100 text-blue-700 font-bold flex items-center justify-center text-xl mr-4 border border-blue-200">
+                            {{ job.employer.username|make_list|first|upper }}
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h3 class="text-base font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1 pr-4">{{ job.title }}</h3>
+                            <p class="text-sm text-gray-500">{{ job.employer.employer_profile.company_name|default:job.employer.username }}</p>
+                        </div>
+                    </div>
+                    <button class="text-gray-300 hover:text-blue-600 absolute top-6 right-6 transition-colors">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                    </button>
+                </div>
+
+                <!-- Tags -->
+                <div class="flex flex-wrap gap-2 mb-6">
+                    {% if job.employment_type %}
+                    <span class="px-2 py-1 bg-gray-50 text-gray-600 text-[10px] font-bold rounded uppercase tracking-wide border border-gray-100">{{ job.get_employment_type_display }}</span>
+                    {% endif %}
+                    {% if job.remote_status %}
+                    <span class="px-2 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded uppercase tracking-wide border border-blue-100">{{ job.get_remote_status_display }}</span>
+                    {% endif %}
+                    {% if job.is_featured %}
+                    <span class="px-2 py-1 bg-yellow-50 text-yellow-600 text-[10px] font-bold rounded uppercase tracking-wide border border-yellow-100">FEATURED</span>
+                    {% endif %}
+                </div>
+
+                <!-- Bottom Row -->
+                <div class="mt-auto flex items-center justify-between pt-4 border-t border-gray-50">
+                    <div class="flex items-center text-xs text-gray-500">
+                        <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        {{ job.location|truncatechars:20 }}
+                    </div>
+                    {% if job.salary_min and job.salary_max %}
+                    <div class="text-xs font-bold text-gray-900">
+                        {{ job.salary_min|currency }} - {{ job.salary_max|currency }}
+                    </div>
+                    {% endif %}
+                </div>
+            </a>
+            {% empty %}
+            <div class="col-span-full text-center py-12 bg-white rounded-2xl border border-gray-100">
+                <p class="text-gray-500 font-medium">No featured jobs available right now.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-12 text-center">
+            <a href="{% url 'job_list' %}" class="inline-flex items-center justify-center px-6 py-3 border border-gray-200 text-sm font-semibold rounded-lg text-blue-600 bg-white hover:bg-gray-50 transition-colors">
+                View all roles
+                <svg class="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+            </a>
+        </div>
+    </div>
+</div>
+
 <!-- POPULAR CATEGORIES -->
 <div class="bg-white py-16 border-t border-gray-100">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -356,44 +431,6 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 
-<!-- TRENDING COMPANIES -->
-<div class="bg-gray-50 py-16 border-t border-gray-100">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="mb-10 text-center sm:text-left">
-            <h2 class="text-3xl font-bold text-gray-900 mb-2">Trending Job by Companies</h2>
-            <p class="text-sm text-gray-500">Explore open roles from top hiring employers.</p>
-        </div>
-
-        <div class="flex flex-wrap gap-3 mb-10" id="company-list">
-            {% for company in trending_companies %}
-            {% if company.company_name %}
-            <a href="{% url 'company_detail' company.id %}" class="company-item group inline-flex items-center px-4 py-2 bg-white border border-gray-200 rounded-full hover:border-blue-300 hover:bg-blue-50 transition-colors shadow-sm" {% if forloop.counter > 15 %}style="display: none;"{% endif %}>
-                <span class="text-sm font-medium text-gray-700 group-hover:text-blue-700">{{ company.company_name }}</span>
-                <span class="ml-2 bg-gray-100 text-gray-500 group-hover:bg-white group-hover:text-blue-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                    {{ company.active_job_count }}
-                </span>
-            </a>
-            {% endif %}
-            {% empty %}
-            <p class="text-sm text-gray-500">No trending companies found.</p>
-            {% endfor %}
-        </div>
-        
-        <div class="flex flex-wrap items-center justify-center gap-4">
-            {% if trending_companies|length > 15 %}
-            <button id="show-more-companies" class="inline-flex items-center text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors bg-white border border-gray-200 px-4 py-2 rounded-full shadow-sm hover:bg-gray-50">
-                Show More Companies
-                <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            {% endif %}
-            <a href="{% url 'job_list' %}" class="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors">
-                Browse All Jobs
-                <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-            </a>
-        </div>
-    </div>
-</div>
-
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const showMoreCompBtn = document.getElementById('show-more-companies');
@@ -411,76 +448,6 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 
-<!-- TRENDING ROLES -->
-<div class="bg-gray-50 py-16">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="mb-10">
-            <h2 class="text-3xl font-bold text-gray-900 mb-2">Trending Roles</h2>
-            <p class="text-sm text-gray-500">Exclusive positions available right now.</p>
-        </div>
-
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for job in recent_jobs %}
-            <a href="{% url 'job_detail' job.id %}" class="job-card bg-white rounded-2xl p-6 border border-gray-100 relative group flex flex-col h-full">
-                <!-- Top Row -->
-                <div class="flex items-start justify-between mb-6">
-                    <div class="flex items-center">
-                        {% if job.employer.employer_profile.logo %}
-                        <div class="h-12 w-12 rounded-xl bg-gray-50 flex items-center justify-center p-2 mr-4 border border-gray-100">
-                            <img src="{{ job.employer.employer_profile.logo.url }}" alt="Logo" class="w-full h-full object-contain">
-                        </div>
-                        {% else %}
-                        <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-100 to-purple-100 text-blue-700 font-bold flex items-center justify-center text-xl mr-4 border border-blue-200">
-                            {{ job.employer.username|make_list|first|upper }}
-                        </div>
-                        {% endif %}
-                        <div>
-                            <h3 class="text-base font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1 pr-4">{{ job.title }}</h3>
-                            <p class="text-sm text-gray-500">{{ job.employer.employer_profile.company_name|default:job.employer.username }}</p>
-                        </div>
-                    </div>
-                    <button class="text-gray-300 hover:text-blue-600 absolute top-6 right-6 transition-colors">
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-                    </button>
-                </div>
-
-                <!-- Tags -->
-                <div class="flex flex-wrap gap-2 mb-6">
-                    {% if job.employment_type %}
-                    <span class="px-2 py-1 bg-gray-50 text-gray-600 text-[10px] font-bold rounded uppercase tracking-wide border border-gray-100">{{ job.get_employment_type_display }}</span>
-                    {% endif %}
-                    {% if job.remote_status %}
-                    <span class="px-2 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded uppercase tracking-wide border border-blue-100">{{ job.get_remote_status_display }}</span>
-                    {% endif %}
-                    {% if job.is_featured %}
-                    <span class="px-2 py-1 bg-yellow-50 text-yellow-600 text-[10px] font-bold rounded uppercase tracking-wide border border-yellow-100">FEATURED</span>
-                    {% endif %}
-                </div>
-
-                <!-- Bottom Row -->
-                <div class="mt-auto flex items-center justify-between pt-4 border-t border-gray-50">
-                    <div class="flex items-center text-xs text-gray-500">
-                        <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        {{ job.location|truncatechars:20 }}
-                    </div>
-                    {% if job.salary_min and job.salary_max %}
-                    <div class="text-xs font-bold text-gray-900">
-                        {{ job.salary_min|currency }} - {{ job.salary_max|currency }}
-                    </div>
-                    {% endif %}
-                </div>
-            </a>
-            {% endfor %}
-        </div>
-        
-        <div class="mt-12 text-center">
-            <a href="{% url 'job_list' %}" class="inline-flex items-center justify-center px-6 py-3 border border-gray-200 text-sm font-semibold rounded-lg text-blue-600 bg-white hover:bg-gray-50 transition-colors">
-                View all roles
-                <svg class="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-            </a>
-        </div>
-    </div>
-</div>
 
 <!-- WHY JOBBEE -->
 <div class="bg-white py-24">
@@ -524,50 +491,56 @@ document.addEventListener("DOMContentLoaded", function() {
     </div>
 </div>
 
+{% if testimonial %}
 <!-- TESTIMONIAL -->
 <div class="bg-white py-8 pb-20">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="rounded-3xl bg-[#f8fbff] overflow-hidden relative flex flex-col md:flex-row items-center border border-[#e5efff]">
+        <div class="gradient-blue-bg rounded-3xl overflow-hidden relative flex flex-col md:flex-row items-center border border-[#e5efff]">
             <!-- Subtle dot pattern in bg -->
             <div class="absolute inset-0 bg-dotted opacity-30"></div>
             
             <div class="p-10 md:p-16 md:w-3/5 relative z-10">
-                <svg class="h-12 w-12 text-blue-200 mb-6" fill="currentColor" viewBox="0 0 24 24">
+                <svg class="h-12 w-12 text-blue-200 mb-6 opacity-60" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
                 </svg>
-                <h3 class="text-2xl md:text-3xl font-bold text-gray-900 leading-tight mb-8">
-                    JobBee helped me land my dream role at a company I've always admired.
+                <h3 class="text-2xl md:text-3xl font-bold text-white leading-tight mb-8">
+                    {{ testimonial.quote }}
                 </h3>
                 <div class="flex items-center">
-                    <img class="h-12 w-12 rounded-full object-cover mr-4" src="https://ui-avatars.com/api/?name=Sarah+L&background=random" alt="Sarah L.">
+                    {% if testimonial.author_avatar %}
+                        <img class="h-12 w-12 rounded-full object-cover mr-4 ring-2 ring-white/20" src="{{ testimonial.author_avatar.url }}" alt="{{ testimonial.author_name }}">
+                    {% else %}
+                        <img class="h-12 w-12 rounded-full object-cover mr-4 ring-2 ring-white/20" src="https://ui-avatars.com/api/?name={{ testimonial.author_name|urlencode }}&background=random" alt="{{ testimonial.author_name }}">
+                    {% endif %}
                     <div>
-                        <div class="font-bold text-gray-900 text-sm">Sarah L.</div>
-                        <div class="text-xs text-gray-500">Product Designer at Airbnb</div>
+                        <div class="font-bold text-white text-sm">{{ testimonial.author_name }}</div>
+                        <div class="text-xs text-blue-100">{{ testimonial.author_title }}</div>
                     </div>
                 </div>
             </div>
             
             <!-- Graphic Right Side -->
-            <div class="md:w-2/5 relative h-64 md:h-full w-full min-h-[300px] bg-[#eef5ff]">
+            <div class="md:w-2/5 relative h-64 md:h-full w-full min-h-[300px] bg-black/10">
                 <!-- Abstract decorative arrow -->
-                <svg class="absolute top-10 left-10 w-8 h-8 text-blue-500 transform rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="absolute top-10 left-10 w-8 h-8 text-blue-200/50 transform rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                 </svg>
                 
                 <!-- Hired Card Badge -->
                 <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl p-4 shadow-xl border border-gray-100 flex items-center w-64 z-20">
                     <div class="h-10 w-10 bg-red-50 text-red-500 rounded-lg flex items-center justify-center font-bold text-xl mr-3">
-                        a
+                        {{ testimonial.badge_initial|default:"a" }}
                     </div>
                     <div>
                         <div class="text-xs font-bold text-green-600 mb-0.5">Hired</div>
-                        <div class="text-xs font-bold text-gray-900">Product Designer</div>
+                        <div class="text-xs font-bold text-gray-900">{{ testimonial.hired_role }}</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endif %}
 
 <!-- FOR EMPLOYERS -->
 <div class="bg-white py-16 pb-24 border-t border-gray-100">
