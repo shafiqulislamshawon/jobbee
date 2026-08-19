@@ -40,6 +40,7 @@ class Job(models.Model):
         ('CAD', 'Canadian Dollar (C$)'),
         ('AUD', 'Australian Dollar (A$)'),
         ('INR', 'Indian Rupee (₹)'),
+        ('BDT', 'Bangladeshi Taka (৳)'),
     )
 
     title = models.CharField(max_length=255, db_index=True)
@@ -83,7 +84,8 @@ class Job(models.Model):
             'GBP': '£',
             'CAD': 'C$',
             'AUD': 'A$',
-            'INR': '₹'
+            'INR': '₹',
+            'BDT': '৳'
         }
         return symbols.get(self.currency, '$')
 

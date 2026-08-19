@@ -41,7 +41,7 @@
                         {% if template.is_free %}
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800">FREE</span>
                         {% else %}
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-800">{{ template.price|currency }}</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-800">{% format_currency template.price %}</span>
                         {% endif %}
                     </div>
                     <p class="text-sm text-gray-500 mb-6 flex-1">{{ template.description }}</p>
@@ -69,7 +69,7 @@
                                 <input type="text" name="coupon_code" placeholder="Coupon Code" class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-center uppercase text-xs" />
                             </div>
                             <button type="submit" class="w-full text-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
-                                Buy for {{ template.price|currency }}
+                                Buy for {% format_currency template.price %}
                             </button>
                         </form>
                         {% endif %}

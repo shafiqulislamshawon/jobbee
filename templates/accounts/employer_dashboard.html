@@ -4,7 +4,7 @@
 {% block title %}Employer Dashboard - {{ site_settings.site_name }}{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+<div class="container-fluid w-full mx-auto py-12 px-4 sm:px-6 lg:px-8">
     <div class="md:flex md:items-center md:justify-between mb-8">
         <div class="flex-1 min-w-0 flex items-center gap-4">
             {% if request.user.employer_profile.logo %}
@@ -41,28 +41,28 @@
             {% endwith %}
         </div>
         <div class="mt-4 flex flex-wrap md:mt-0 md:ml-4 gap-3">
-            <a href="{% url 'employer_verification' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+            <a href="{% url 'employer_verification' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-900 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition">
                 Get Verified
             </a>
-            <a href="{% url 'edit_profile' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+            <a href="{% url 'edit_profile' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-900 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition">
                 Edit Profile
             </a>
-            <a href="{% url 'manage_recruiters' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+            <a href="{% url 'manage_recruiters' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-900 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition">
                 Manage Team
             </a>
-            <a href="{% url 'wallet_topup' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+            <a href="{% url 'wallet_topup' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-900 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition">
                 Top Up Wallet
             </a>
-            <a href="{% url 'subscriptions:billing_dashboard' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+            <a href="{% url 'subscriptions:billing_dashboard' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-900 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition">
                 Billing & Invoices
             </a>
-            <a href="{% url 'talent_pool' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+            <a href="{% url 'talent_pool' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-900 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition">
                 Talent Pool
             </a>
-            <a href="{% url 'subscriptions:addons_store' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+            <a href="{% url 'subscriptions:addons_store' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-900 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition">
                 Add-ons Store
             </a>
-            <a href="{% url 'post_job' %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+            <a href="{% url 'post_job' %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-bold text-gray-900 bg-primary hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition">
                 Post a New Job
             </a>
         </div>
@@ -77,8 +77,8 @@
         <div class="text-left sm:text-right w-full sm:w-auto">
             <p class="text-sm font-medium text-gray-900">Jobs Quota: {{ subscription.jobs_posted }} / {% if subscription.total_job_limit == -1 %}Unlimited{% else %}{{ subscription.total_job_limit }}{% endif %}</p>
             <div class="mt-2 flex gap-4 justify-start sm:justify-end">
-                <a href="{% url 'subscriptions:addons_store' %}" class="text-gray-600 hover:text-gray-900 text-sm font-medium">Add-ons Store</a>
-                <a href="{% url 'subscriptions:pricing' %}" class="text-accent hover:text-blue-600 text-sm font-medium">Upgrade Plan</a>
+                <a href="{% url 'subscriptions:addons_store' %}" class="text-gray-900 hover:text-black font-semibold text-sm underline">Add-ons Store</a>
+                <a href="{% url 'subscriptions:pricing' %}" class="text-primary hover:text-accent text-sm font-bold underline">Upgrade Plan</a>
             </div>
         </div>
     </div>
@@ -95,37 +95,46 @@
     {% endif %}
     
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200">
+        <a href="#jobs-list" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 hover:shadow-md hover:border-primary transition group relative">
             <div class="px-4 py-5 sm:p-6">
-                <dt class="text-sm font-medium text-gray-500 truncate">Total Jobs Posted</dt>
-                <dd class="mt-1 text-3xl font-extrabold text-primary">{{ total_jobs }}</dd>
+                <dt class="text-sm font-medium text-gray-500 truncate group-hover:text-gray-900 transition">Total Jobs Posted</dt>
+                <dd class="mt-1 text-3xl font-extrabold text-gray-900">{{ total_jobs }}</dd>
             </div>
-        </div>
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200">
+            <div class="absolute inset-y-0 right-4 flex items-center opacity-0 group-hover:opacity-100 transition">
+                <svg class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            </div>
+        </a>
+        <a href="#jobs-list" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 hover:shadow-md hover:border-primary transition group relative">
             <div class="px-4 py-5 sm:p-6">
-                <dt class="text-sm font-medium text-gray-500 truncate">Total Views</dt>
-                <dd class="mt-1 text-3xl font-extrabold text-accent">{{ total_views }}</dd>
+                <dt class="text-sm font-medium text-gray-500 truncate group-hover:text-gray-900 transition">Total Views</dt>
+                <dd class="mt-1 text-3xl font-extrabold text-gray-900">{{ total_views }}</dd>
             </div>
-        </div>
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200">
+            <div class="absolute inset-y-0 right-4 flex items-center opacity-0 group-hover:opacity-100 transition">
+                <svg class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            </div>
+        </a>
+        <a href="#jobs-list" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 hover:shadow-md hover:border-primary transition group relative">
             <div class="px-4 py-5 sm:p-6">
-                <dt class="text-sm font-medium text-gray-500 truncate">Total Applicants</dt>
-                <dd class="mt-1 text-3xl font-extrabold text-green-600">{{ total_applicants }}</dd>
+                <dt class="text-sm font-medium text-gray-500 truncate group-hover:text-gray-900 transition">Total Applicants</dt>
+                <dd class="mt-1 text-3xl font-extrabold text-gray-900">{{ total_applicants }}</dd>
             </div>
-        </div>
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200">
+            <div class="absolute inset-y-0 right-4 flex items-center opacity-0 group-hover:opacity-100 transition">
+                <svg class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            </div>
+        </a>
+        <a href="{% url 'wallet_topup' %}" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 hover:shadow-md hover:border-primary transition group relative">
             <div class="px-4 py-5 sm:p-6 flex justify-between items-center">
                 <div>
-                    <dt class="text-sm font-medium text-gray-500 truncate">Wallet Balance</dt>
-                    <dd class="mt-1 text-3xl font-extrabold text-green-600">{{ request.user.employer_profile.credits|currency }}</dd>
+                    <dt class="text-sm font-medium text-gray-500 truncate group-hover:text-gray-900 transition">Wallet Balance</dt>
+                    <dd class="mt-1 text-3xl font-extrabold text-gray-900">{% format_currency request.user.employer_profile.credits %}</dd>
                 </div>
-                <a href="{% url 'wallet_topup' %}" class="inline-flex items-center p-2 border border-transparent rounded-full shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none transition">
+                <div class="inline-flex items-center p-2 border border-transparent rounded-full shadow-sm text-gray-900 bg-primary group-hover:bg-accent focus:outline-none transition">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                </a>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     
     <!-- Business Intelligence Analytics Section -->
@@ -147,7 +156,7 @@
         </div>
     </div>
 
-    <div class="bg-white shadow-sm overflow-hidden sm:rounded-lg border border-gray-200">
+    <div id="jobs-list" class="bg-white shadow-sm overflow-hidden sm:rounded-lg border border-gray-200">
         <div class="px-4 py-5 sm:px-6 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
             <h3 class="text-lg leading-6 font-medium text-gray-900">
                 Your Job Postings
@@ -160,17 +169,16 @@
             {% for job in jobs %}
             <li>
                 <div class="block hover:bg-gray-50 transition relative">
-                    <a href="{% url 'manage_applicants' job.id %}" class="absolute inset-0 z-0"></a>
                     <div class="px-4 py-4 sm:px-6 relative z-10">
                         <div class="flex items-center justify-between">
-                            <p class="text-sm font-bold text-accent truncate">
+                            <a href="{% url 'manage_applicants' job.id %}" class="text-sm font-bold text-accent hover:underline truncate block w-full">
                                 {{ job.title }}
-                            </p>
+                            </a>
                             <div class="ml-2 flex-shrink-0 flex items-center space-x-2">
-                                <a href="{% url 'edit_job' job.id %}" class="px-3 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors relative z-20">
+                                <a href="{% url 'edit_job' job.id %}" class="px-3 py-0.5 inline-flex text-xs leading-5 font-bold rounded-full bg-primary text-gray-900 hover:bg-accent transition-colors relative z-20">
                                     Edit
                                 </a>
-                                <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if job.is_active %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if job.is_active %}bg-gray-900 text-white{% else %}bg-gray-100 text-gray-800{% endif %}">
                                     {% if job.is_active %}Active{% else %}Closed{% endif %}
                                 </p>
                             </div>

@@ -10,7 +10,7 @@
 
 <div class="details-box">
     <strong>Transaction ID:</strong> {{ request_obj.transaction_id }}<br>
-    <strong>Amount Topped Up:</strong> {{ request_obj.amount|currency }}
+    <strong>Amount Topped Up:</strong> {% format_currency request_obj.amount %}
 </div>
 
 <p>The funds have been credited to your JobBee Wallet and are available for immediate use across the platform (e.g. purchasing Premium Resume templates or Job Board Add-ons).</p>

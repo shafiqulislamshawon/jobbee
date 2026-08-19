@@ -36,13 +36,14 @@ admin.site.register(Education)
 admin.site.register(Experience)
 admin.site.register(Certification)
 
-from .models import BKashTopUpRequest
+from .models import BKashTopUpRequest, BankTransferTopUpRequest
 
 @admin.register(BKashTopUpRequest)
 class BKashTopUpRequestAdmin(admin.ModelAdmin):
-    list_display = ('user', 'amount', 'bkash_number', 'transaction_id', 'status', 'created_at')
+    list_display = ('user', 'amount', 'transaction_id', 'status', 'created_at')
     list_filter = ('status', 'created_at')
     search_fields = ('user__username', 'transaction_id', 'bkash_number')
+    readonly_fields = ('created_at',)
     actions = ['approve_requests', 'reject_requests']
 
     def approve_requests(self, request, queryset):
@@ -55,3 +56,32 @@ class BKashTopUpRequestAdmin(admin.ModelAdmin):
     def reject_requests(self, request, queryset):
         queryset.update(status='REJECTED')
     reject_requests.short_description = "Reject selected top-up requests"
+    
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.status != 'PENDING':
+            return self.readonly_fields + ('amount', 'bkash_number', 'transaction_id', 'status')
+        return self.readonly_fields
+
+@admin.register(BankTransferTopUpRequest)
+class BankTransferTopUpRequestAdmin(admin.ModelAdmin):
+    list_display = ('user', 'amount', 'bank_name', 'transaction_id', 'status', 'created_at')
+    list_filter = ('status', 'created_at', 'bank_name')
+    search_fields = ('user__username', 'transaction_id', 'account_number', 'bank_name')
+    readonly_fields = ('created_at',)
+    actions = ['approve_requests', 'reject_requests']
+
+    def approve_requests(self, request, queryset):
+        for req in queryset:
+            if req.status == 'PENDING':
+                req.status = 'APPROVED'
+                req.save()
+    approve_requests.short_description = "Approve selected top-up requests"
+
+    def reject_requests(self, request, queryset):
+        queryset.update(status='REJECTED')
+    reject_requests.short_description = "Reject selected top-up requests"
+    
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.status != 'PENDING':
+            return self.readonly_fields + ('amount', 'bank_name', 'account_number', 'transaction_id', 'receipt', 'status')
+        return self.readonly_fields

@@ -89,9 +89,9 @@
                             {% render_field form.sub_location class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" placeholder="e.g. Dhaka, Banani" %}
                         </div>
 
-                        <div class="flex items-center mt-8">
+                        <div class="flex items-center mt-8" id="anywhere-in-country-container" style="display: none;">
                             {% render_field form.anywhere_in_bd class="h-5 w-5 text-accent focus:ring-accent border-gray-300 rounded" %}
-                            <label for="{{ form.anywhere_in_bd.id_for_label }}" class="ml-3 block text-sm font-bold text-gray-700">Anywhere in Bangladesh</label>
+                            <label for="{{ form.anywhere_in_bd.id_for_label }}" class="ml-3 block text-sm font-bold text-gray-700" id="anywhere-label">Anywhere in Country</label>
                         </div>
                         
                         <!-- Salary Section -->
@@ -109,16 +109,25 @@
                                 </div>
                             </div>
                             
-                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2" id="salary-fields-container">
+                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-3" id="salary-fields-container">
+                                <div>
+                                    <label for="{{ form.currency.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Currency</label>
+                                    {% render_field form.currency class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" id="id_currency" %}
+                                </div>
+                                
                                 <div>
                                     <label for="{{ form.salary_min.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Minimum Salary</label>
-                                    {% render_field form.salary_min class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" placeholder="0" %}
+                                    {% render_field form.salary_min class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" placeholder="0" id="id_salary_min" %}
                                 </div>
                                 
                                 <div>
                                     <label for="{{ form.salary_max.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">Maximum Salary</label>
-                                    {% render_field form.salary_max class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" placeholder="0" %}
+                                    {% render_field form.salary_max class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200 shadow-sm sm:text-sm" placeholder="0" id="id_salary_max" %}
                                 </div>
+                            </div>
+                            
+                            <div id="currency-conversion-display" class="mt-4 text-sm font-bold text-gray-600 bg-gray-100 p-3 rounded-lg border border-gray-200 hidden">
+                                <!-- Conversion logic output will appear here -->
                             </div>
                         </div>
 
@@ -255,6 +264,91 @@
             negotiableCheckbox.addEventListener('change', toggleSalaryFields);
             toggleSalaryFields(); // initial run
         }
+        
+        // Location dynamic label
+        const locationSelect = document.getElementById('{{ form.location.id_for_label }}');
+        const anywhereContainer = document.getElementById('anywhere-in-country-container');
+        const anywhereLabel = document.getElementById('anywhere-label');
+        
+        function updateLocation() {
+            if (locationSelect && locationSelect.value) {
+                const countryName = locationSelect.options[locationSelect.selectedIndex].text;
+                anywhereLabel.innerText = "Anywhere in " + countryName;
+                anywhereContainer.style.display = "flex";
+            } else if (anywhereContainer) {
+                anywhereContainer.style.display = "none";
+            }
+        }
+        
+        if (locationSelect) {
+            locationSelect.addEventListener('change', updateLocation);
+            updateLocation();
+        }
+
+        // Currency dynamic conversion
+        const rates = {{ exchange_rates|safe }};
+        const baseCurrency = "{{ base_currency }}";
+        const currencySelect = document.getElementById('id_currency');
+        const salaryMin = document.getElementById('id_salary_min');
+        const salaryMax = document.getElementById('id_salary_max');
+        const conversionDisplay = document.getElementById('currency-conversion-display');
+
+        function updateConversion() {
+            if (!currencySelect || !salaryMin) return;
+            const currency = currencySelect.value;
+            const min = parseFloat(salaryMin.value);
+            const max = parseFloat(salaryMax.value);
+            
+            if (isNaN(min)) {
+                conversionDisplay.style.display = "none";
+                return;
+            }
+            
+            const rate = rates[currency] || 1;
+            // Amount in base currency = Amount / rate (since rate is how much currency = 1 base currency)
+            const convertedMin = Math.round(min / rate);
+            let text = `Approximate Equivalent: ${convertedMin.toLocaleString()} ${baseCurrency}`;
+            
+            if (!isNaN(max)) {
+                const convertedMax = Math.round(max / rate);
+                text = `Approximate Equivalent: ${convertedMin.toLocaleString()} - ${convertedMax.toLocaleString()} ${baseCurrency}`;
+            }
+            
+            if (currency === baseCurrency) {
+                conversionDisplay.style.display = "none";
+            } else {
+                conversionDisplay.innerText = text;
+                conversionDisplay.style.display = "block";
+            }
+        }
+
+        if (currencySelect) currencySelect.addEventListener('change', updateConversion);
+        if (salaryMin) salaryMin.addEventListener('input', updateConversion);
+        if (salaryMax) salaryMax.addEventListener('input', updateConversion);
+        
+        updateConversion(); // Initial run
     });
 </script>
+{% endblock %}
+
+{% block global_cta %}
+<div class="reveal-on-scroll bg-white py-16 px-4 sm:px-6 lg:px-8 mt-12">
+    <div class="max-w-7xl mx-auto bg-gray-900 rounded-3xl overflow-hidden relative shadow-2xl shadow-gray-900/20">
+        <!-- Decoration -->
+        <svg class="absolute top-0 right-0 w-64 h-64 text-yellow-500 opacity-10 transform translate-x-1/3 -translate-y-1/3" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 0l3 9h9l-7 5 3 9-8-6-8 6 3-9-7-5h9z" />
+        </svg>
+        <div class="p-12 md:p-16 flex flex-col md:flex-row items-center justify-between relative z-10">
+            <div class="mb-8 md:mb-0 text-center md:text-left text-white">
+                <h2 class="text-3xl sm:text-4xl font-bold mb-3">Want to reach candidates faster?</h2>
+                <p class="text-gray-300 text-lg">Manage your active listings and candidates.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <a href="{% url 'employer_dashboard' %}" class="px-8 py-3 bg-primary text-gray-900 font-bold rounded-lg hover:bg-accent transition-colors text-center shadow-lg">
+                    Return to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

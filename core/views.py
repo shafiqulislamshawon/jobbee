@@ -277,3 +277,20 @@ def services(request):
 
 def contact_us(request):
     return render(request, 'core/contact.html')
+
+def subscribe_newsletter(request):
+    from .models import NewsletterSubscriber
+    from django.contrib import messages
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        if email:
+            NewsletterSubscriber.objects.get_or_create(email=email)
+            messages.success(request, "Thank you for subscribing to our newsletter!")
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+def set_currency(request):
+    if request.method == 'POST':
+        currency = request.POST.get('currency', 'BDT')
+        request.session['user_currency'] = currency
+    next_url = request.META.get('HTTP_REFERER', '/')
+    return redirect(next_url)

@@ -357,7 +357,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                     {% if job.salary_min and job.salary_max %}
                     <div class="text-xs font-bold text-gray-900">
-                        {{ job.salary_min|currency }} - {{ job.salary_max|currency }}
+                        {% format_currency job.salary_min %} - {% format_currency job.salary_max %}
                     </div>
                     {% endif %}
                 </div>
@@ -663,21 +663,21 @@ document.addEventListener("DOMContentLoaded", function() {
 
 <!-- CTA BANNER -->
 <div class="bg-white pb-20 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-7xl mx-auto gradient-blue-bg rounded-3xl overflow-hidden relative shadow-2xl shadow-blue-500/20">
+    <div class="max-w-7xl mx-auto bg-gray-900 rounded-3xl overflow-hidden relative shadow-2xl shadow-gray-900/20">
         <!-- Decoration -->
-        <svg class="absolute top-0 right-0 w-64 h-64 text-white opacity-10 transform translate-x-1/3 -translate-y-1/3" fill="currentColor" viewBox="0 0 24 24">
+        <svg class="absolute top-0 right-0 w-64 h-64 text-yellow-500 opacity-10 transform translate-x-1/3 -translate-y-1/3" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 0l3 9h9l-7 5 3 9-8-6-8 6 3-9-7-5h9z" />
         </svg>
         <div class="p-12 md:p-16 flex flex-col md:flex-row items-center justify-between relative z-10">
             <div class="mb-8 md:mb-0 text-center md:text-left text-white">
                 <h2 class="text-3xl sm:text-4xl font-bold mb-3">Ready to take the next step?</h2>
-                <p class="text-blue-100 text-lg">Join thousands of professionals building their future.</p>
+                <p class="text-gray-300 text-lg">Join thousands of professionals building their future.</p>
             </div>
             <div class="flex flex-col sm:flex-row gap-4">
-                <a href="{% url 'account_signup' %}" class="px-8 py-3 bg-white text-blue-600 font-bold rounded-lg hover:bg-gray-50 transition-colors text-center shadow-lg">
+                <a href="{% url 'account_signup' %}" class="px-8 py-3 bg-primary text-gray-900 font-bold rounded-lg hover:bg-accent transition-colors text-center shadow-lg">
                     Create Free Account
                 </a>
-                <a href="{% url 'account_login' %}" class="px-8 py-3 bg-transparent border border-blue-300 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors text-center">
+                <a href="{% url 'account_login' %}" class="px-8 py-3 bg-transparent border border-gray-700 text-white font-bold rounded-lg hover:bg-gray-800 transition-colors text-center">
                     Sign in
                 </a>
             </div>

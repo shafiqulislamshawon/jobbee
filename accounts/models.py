@@ -245,6 +245,57 @@ class BKashTopUpRequest(models.Model):
                     print(f"Error sending bKash approval email: {e}")
         super().save(*args, **kwargs)
 
+class BankTransferTopUpRequest(models.Model):
+    STATUS_CHOICES = (
+        ('PENDING', 'Pending'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bank_topups')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    bank_name = models.CharField(max_length=100)
+    account_number = models.CharField(max_length=50)
+    transaction_id = models.CharField(max_length=100, unique=True)
+    receipt = models.ImageField(upload_to='receipts/%Y/%m/', null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def save(self, *args, **kwargs):
+        if self.pk:
+            old = BankTransferTopUpRequest.objects.get(pk=self.pk)
+            if old.status == 'PENDING' and self.status == 'APPROVED':
+                # Convert the amount to base currency if needed
+                from core.models import CurrencySettings
+                settings = CurrencySettings.objects.first()
+                
+                amount_to_add = self.amount
+                if settings and settings.enable_conversion and settings.exchange_rate > 0:
+                    amount_to_add = self.amount / settings.exchange_rate
+
+                # Credit the user's wallet
+                if self.user.is_seeker and hasattr(self.user, 'seeker_profile'):
+                    self.user.seeker_profile.wallet_balance += amount_to_add
+                    self.user.seeker_profile.save()
+                elif self.user.is_employer and hasattr(self.user, 'employer_profile'):
+                    self.user.employer_profile.credits += amount_to_add
+                    self.user.employer_profile.save()
+                # Send approval email
+                try:
+                    from core.emails import send_html_email
+                    send_html_email(
+                        subject='JobBee Wallet Top-Up Approved!',
+                        template_name='emails/bkash_approved.html',
+                        context={
+                            'user': self.user,
+                            'request_obj': self,
+                            'dashboard_url': 'http://localhost:8000/accounts/dashboard/'
+                        },
+                        to_email=self.user.email
+                    )
+                except Exception as e:
+                    print(f"Error sending bank transfer approval email: {e}")
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.user.username} - {self.amount} BDT ({self.status})"
 

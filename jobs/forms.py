@@ -18,7 +18,7 @@ class JobForm(forms.ModelForm):
         model = Job
         fields = [
             'title', 'category', 'description', 'responsibilities', 'requirements', 'professional_qualifications',
-            'salary_min', 'salary_max', 'is_salary_negotiable', 'show_salary', 'employment_type', 'remote_status', 
+            'currency', 'salary_min', 'salary_max', 'is_salary_negotiable', 'show_salary', 'employment_type', 'remote_status', 
             'location', 'sub_location', 'anywhere_in_bd', 'benefits', 'skills', 'experience', 'education', 'deadline',
             'is_featured'
         ]
@@ -26,6 +26,7 @@ class JobForm(forms.ModelForm):
             'description': 'Job Context',
             'requirements': 'Additional Requirements',
             'sub_location': 'Sub-location / City',
+            'anywhere_in_bd': 'Anywhere in Country',
         }
         widgets = {
             'deadline': forms.DateInput(attrs={'type': 'date', 'class': 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm'}),
@@ -36,6 +37,7 @@ class JobForm(forms.ModelForm):
             'requirements': forms.Textarea(attrs={'class': 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm', 'rows': 4}),
             'professional_qualifications': forms.Textarea(attrs={'class': 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm', 'rows': 3}),
             'sub_location': forms.TextInput(attrs={'class': 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm'}),
+            'currency': forms.Select(attrs={'class': 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm'}),
         }
 
     def __init__(self, *args, **kwargs):

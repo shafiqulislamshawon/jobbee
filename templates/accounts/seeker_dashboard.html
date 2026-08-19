@@ -4,7 +4,7 @@
 {% block title %}My Profile - {{ site_settings.site_name }}{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+<div class="container-fluid w-full mx-auto py-12 px-4 sm:px-6 lg:px-8">
     <div class="md:flex md:items-center md:justify-between mb-8">
         <div class="flex-1 min-w-0 flex items-center gap-4">
             {% if request.user.seeker_profile.profile_picture %}
@@ -24,10 +24,10 @@
             </div>
         </div>
         <div class="mt-4 flex md:mt-0 md:ml-4 gap-3">
-            <a href="{% url 'assessments' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+            <a href="{% url 'assessments' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-900 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition">
                 Skill Assessments
             </a>
-            <a href="{% url 'job_list' %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition">
+            <a href="{% url 'job_list' %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-bold text-gray-900 bg-primary hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition">
                 Browse Jobs
             </a>
         </div>
@@ -58,37 +58,46 @@
     {% endwith %}
     
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200">
+        <a href="#applications-list" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 hover:shadow-md hover:border-primary transition group relative">
             <div class="px-4 py-5 sm:p-6">
-                <dt class="text-sm font-medium text-gray-500 truncate">Total Applications</dt>
-                <dd class="mt-1 text-3xl font-extrabold text-primary">{{ total_applications }}</dd>
+                <dt class="text-sm font-medium text-gray-500 truncate group-hover:text-gray-900 transition">Total Applications</dt>
+                <dd class="mt-1 text-3xl font-extrabold text-gray-900">{{ total_applications }}</dd>
             </div>
-        </div>
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200">
+            <div class="absolute inset-y-0 right-4 flex items-center opacity-0 group-hover:opacity-100 transition">
+                <svg class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            </div>
+        </a>
+        <a href="#applications-list" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 hover:shadow-md hover:border-primary transition group relative">
             <div class="px-4 py-5 sm:p-6">
-                <dt class="text-sm font-medium text-gray-500 truncate">Pending Review</dt>
-                <dd class="mt-1 text-3xl font-extrabold text-yellow-600">{{ pending_applications }}</dd>
+                <dt class="text-sm font-medium text-gray-500 truncate group-hover:text-gray-900 transition">Pending Review</dt>
+                <dd class="mt-1 text-3xl font-extrabold text-gray-900">{{ pending_applications }}</dd>
             </div>
-        </div>
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200">
+            <div class="absolute inset-y-0 right-4 flex items-center opacity-0 group-hover:opacity-100 transition">
+                <svg class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            </div>
+        </a>
+        <a href="#applications-list" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 hover:shadow-md hover:border-primary transition group relative">
             <div class="px-4 py-5 sm:p-6">
-                <dt class="text-sm font-medium text-gray-500 truncate">Rejected</dt>
-                <dd class="mt-1 text-3xl font-extrabold text-red-600">{{ rejected_applications }}</dd>
+                <dt class="text-sm font-medium text-gray-500 truncate group-hover:text-gray-900 transition">Rejected</dt>
+                <dd class="mt-1 text-3xl font-extrabold text-gray-900">{{ rejected_applications }}</dd>
             </div>
-        </div>
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200">
+            <div class="absolute inset-y-0 right-4 flex items-center opacity-0 group-hover:opacity-100 transition">
+                <svg class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            </div>
+        </a>
+        <a href="{% url 'wallet_topup' %}" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 hover:shadow-md hover:border-primary transition group relative">
             <div class="px-4 py-5 sm:p-6 flex justify-between items-center">
                 <div>
-                    <dt class="text-sm font-medium text-gray-500 truncate">Wallet Balance</dt>
-                    <dd class="mt-1 text-3xl font-extrabold text-green-600">{{ request.user.seeker_profile.wallet_balance|currency }}</dd>
+                    <dt class="text-sm font-medium text-gray-500 truncate group-hover:text-gray-900 transition">Wallet Balance</dt>
+                    <dd class="mt-1 text-3xl font-extrabold text-gray-900">{% format_currency request.user.seeker_profile.wallet_balance %}</dd>
                 </div>
-                <a href="{% url 'wallet_topup' %}" class="inline-flex items-center p-2 border border-transparent rounded-full shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none transition">
+                <div class="inline-flex items-center p-2 border border-transparent rounded-full shadow-sm text-gray-900 bg-primary group-hover:bg-accent focus:outline-none transition">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                </a>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Profile Summary Section -->
@@ -96,8 +105,8 @@
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-lg leading-6 font-medium text-gray-900">My Profile</h3>
             <div class="flex gap-3">
-                <a href="{% url 'resume_builder' %}" class="text-sm font-bold text-white bg-green-600 hover:bg-green-700 px-3 py-1.5 rounded transition">Resume Builder</a>
-                <a href="{% url 'edit_profile' %}" class="text-sm font-medium text-accent hover:underline py-1.5">Edit Basic Info</a>
+                <a href="{% url 'resume_builder' %}" class="text-sm font-bold text-gray-900 bg-primary hover:bg-accent px-4 py-2 rounded-md shadow-sm transition">Resume Builder</a>
+                <a href="{% url 'edit_profile' %}" class="text-sm font-bold text-gray-900 bg-white border border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-md shadow-sm transition">Edit Basic Info</a>
             </div>
         </div>
         
@@ -162,7 +171,7 @@
         </div>
     </div>
 
-    <div class="bg-white shadow-sm overflow-hidden sm:rounded-lg border border-gray-200">
+    <div id="applications-list" class="bg-white shadow-sm overflow-hidden sm:rounded-lg border border-gray-200">
         <div class="px-4 py-5 sm:px-6 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
             <h3 class="text-lg leading-6 font-medium text-gray-900">
                 My Applications

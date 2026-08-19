@@ -1,0 +1,14 @@
+# Generate all 3 templates for job ID 5
+python manage.py generate_job_card 5
+
+# Generate a specific template
+python manage.py generate_job_card 5 --template editorial
+python manage.py generate_job_card 5 --template bold
+python manage.py generate_job_card 5 --template luxury
+
+# Without QR code
+python manage.py generate_job_card 5 --template bold --no-qr
+
+# Generate for ALL active jobs
+python manage.py generate_job_card --all
+python manage.py generate_job_card --all --template luxury

@@ -18,7 +18,7 @@
 
         <div class="mb-8 flex flex-col items-center justify-center text-gray-900">
             <div class="flex items-baseline">
-                <span class="text-4xl font-extrabold tracking-tight">{{ plan.price|currency }}</span>
+                <span class="text-4xl font-extrabold tracking-tight">{% format_currency plan.price %}</span>
             </div>
             <span class="mt-2 text-sm font-semibold text-gray-500 uppercase tracking-widest">
                 / {% if plan.duration_days == 365 %}Year{% elif plan.duration_days == 180 %}6 Months{% else %}{{ plan.duration_days }} Days{% endif %}

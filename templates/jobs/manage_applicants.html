@@ -3,9 +3,9 @@
 {% block title %}Manage Applicants - {{ job.title }} - {{ site_settings.site_name }}{% endblock %}
 
 {% block content %}
-<div class="h-[calc(100vh-4rem)] flex flex-col bg-gray-50">
+<div class="w-full min-h-[calc(100vh-4rem)] flex flex-col bg-white">
     <div class="bg-white border-b border-gray-200 shadow-sm shrink-0">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <h1 class="text-2xl font-bold text-primary">{{ job.title }}</h1>
                 <p class="text-sm text-gray-500 mt-1">Manage Candidates Pipeline</p>
@@ -44,12 +44,134 @@
                     &larr; <span class="hidden sm:inline ml-1">Dashboard</span>
                 </a>
             </div>
+        
+        <!-- Tabs -->
+        <div class="w-full mx-auto px-4 sm:px-6 lg:px-8 border-t border-gray-200 mt-6 pt-4 flex gap-8">
+            <button onclick="switchTab('overview')" id="tab-btn-overview" class="py-2 border-b-4 border-accent text-gray-900 font-bold transition-colors">Job Overview</button>
+            <button onclick="switchTab('candidates')" id="tab-btn-candidates" class="py-2 border-b-4 border-transparent text-gray-500 hover:text-gray-900 font-bold transition-colors">All Candidates</button>
+        </div>
         </div>
     </div>
 
-    <!-- Kanban Board -->
-    <div class="flex-1 overflow-x-auto py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+    
+    <!-- Job Overview Tab -->
+    <div id="tab-overview" class="flex-1 w-full mx-auto py-8 px-4 sm:px-6 lg:px-8 bg-white block">
+        
+    <div class="w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Job Info - Black Card -->
+        <div class="lg:col-span-3 bg-gray-900 rounded-3xl overflow-hidden relative shadow-2xl p-8 sm:p-12 text-white reveal-on-scroll">
+            <div class="absolute top-0 right-0 p-8 opacity-10">
+                <svg class="w-48 h-48" fill="currentColor" viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
+            </div>
+            
+            <div class="relative z-10">
+                <h1 class="text-4xl sm:text-5xl font-black mb-4">{{ job.title }}</h1>
+                <div class="flex flex-wrap items-center gap-4 text-sm font-medium text-gray-300 mb-8">
+                    <span class="bg-gray-800 px-3 py-1 rounded-lg flex items-center border border-gray-700">
+                        <svg class="h-4 w-4 mr-2 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                        {% if job.anywhere_in_bd %}Anywhere in Bangladesh{% else %}{% if job.sub_location %}{{ job.sub_location }}, {% endif %}{{ job.location.name|default:"Anywhere" }}{% endif %}
+                    </span>
+                    <span class="bg-gray-800 px-3 py-1 rounded-lg flex items-center border border-gray-700">
+                        <svg class="h-4 w-4 mr-2 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                        {{ job.get_employment_type_display }}
+                    </span>
+                    <span class="bg-gray-800 px-3 py-1 rounded-lg flex items-center border border-gray-700">
+                        <svg class="h-4 w-4 mr-2 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        {% if job.show_salary %}
+                            {% if job.is_salary_negotiable %}Negotiable
+                            {% elif job.salary_min %}{% format_currency job.salary_min %} {% if job.salary_max %} - {% format_currency job.salary_max %}{% endif %}
+                            {% else %}Not Specified{% endif %}
+                        {% else %}Not Specified{% endif %}
+                    </span>
+                </div>
+                
+                <div class="flex flex-wrap gap-4 mt-8">
+                    <a href="{% url 'edit_job' job.id %}" class="bg-accent text-gray-900 hover:bg-yellow-400 font-black px-8 py-3 rounded-xl transition-all shadow-lg transform hover:-translate-y-1">
+                        Edit Job Posting
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Job Context Details -->
+        <div class="lg:col-span-2 space-y-8">
+            <div class="bg-gray-900 rounded-3xl p-8 border border-gray-800 shadow-xl text-white reveal-on-scroll delay-100">
+                <h2 class="text-2xl font-black text-accent mb-6 flex items-center">
+                    <svg class="h-6 w-6 mr-3 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Job Context
+                </h2>
+                <div class="prose prose-invert max-w-none whitespace-pre-wrap font-medium text-gray-300">{{ job.description }}</div>
+            </div>
+
+            {% if job.responsibilities %}
+            <div class="bg-gray-900 rounded-3xl p-8 border border-gray-800 shadow-xl text-white reveal-on-scroll delay-200">
+                <h2 class="text-2xl font-black text-accent mb-6 flex items-center">
+                    <svg class="h-6 w-6 mr-3 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                    Responsibilities
+                </h2>
+                <div class="prose prose-invert max-w-none whitespace-pre-wrap font-medium text-gray-300">{{ job.responsibilities }}</div>
+            </div>
+            {% endif %}
+            
+            {% if job.requirements %}
+            <div class="bg-gray-900 rounded-3xl p-8 border border-gray-800 shadow-xl text-white reveal-on-scroll delay-300">
+                <h2 class="text-2xl font-black text-accent mb-6 flex items-center">
+                    <svg class="h-6 w-6 mr-3 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                    Requirements
+                </h2>
+                <div class="prose prose-invert max-w-none whitespace-pre-wrap font-medium text-gray-300">{{ job.requirements }}</div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Sidebar Details -->
+        <div class="space-y-8">
+            <div class="bg-gray-900 rounded-3xl p-8 border border-gray-800 shadow-xl text-white reveal-on-scroll delay-100">
+                <h3 class="text-xl font-black text-accent mb-6">At a Glance</h3>
+                <ul class="space-y-6">
+                    {% if job.experience %}
+                    <li class="flex flex-col">
+                        <span class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Experience Level</span>
+                        <span class="text-white font-medium">{{ job.experience }}</span>
+                    </li>
+                    {% endif %}
+                    {% if job.education %}
+                    <li class="flex flex-col">
+                        <span class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Education Level</span>
+                        <span class="text-white font-medium">{{ job.education }}</span>
+                    </li>
+                    {% endif %}
+                    <li class="flex flex-col">
+                        <span class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Posted On</span>
+                        <span class="text-white font-medium">{{ job.created_at|date:"M d, Y" }}</span>
+                    </li>
+                    {% if job.deadline %}
+                    <li class="flex flex-col">
+                        <span class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Deadline</span>
+                        <span class="text-accent font-bold">{{ job.deadline|date:"M d, Y" }}</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+            
+            {% if job.skills %}
+            <div class="bg-gray-900 rounded-3xl p-8 border border-gray-800 shadow-xl text-white reveal-on-scroll delay-200">
+                <h3 class="text-xl font-black text-accent mb-6">Required Skills</h3>
+                <div class="flex flex-wrap gap-2">
+                    <span class="bg-gray-800 text-white px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-700">{{ job.skills }}</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    </div>
+
+    <!-- Candidates Tab (Hidden by default) -->
+    <div id="tab-candidates" class="flex-1 w-full mx-auto overflow-x-auto py-8 px-4 sm:px-6 lg:px-8 bg-gray-50 hidden">
+<!-- Kanban Board -->
+    <div class="w-full h-full">
+        <div class="w-full mx-auto px-4 sm:px-6 lg:px-8 h-full">
             <div class="flex gap-6 h-full items-start">
                 {% for status, apps in board.items %}
                 <div class="bg-gray-100 rounded-lg w-80 shrink-0 flex flex-col max-h-full border border-gray-200 shadow-sm">
@@ -112,6 +234,8 @@
     </div>
 </div>
 
+
+    </div>
 <!-- Analytics Modal -->
 <div id="analyticsModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -398,5 +522,21 @@
             scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }
         }
     });
+
+    function switchTab(tabId) {
+        document.getElementById('tab-overview').classList.add('hidden');
+        document.getElementById('tab-candidates').classList.add('hidden');
+        
+        document.getElementById('tab-btn-overview').classList.remove('border-accent', 'text-gray-900');
+        document.getElementById('tab-btn-overview').classList.add('border-transparent', 'text-gray-500');
+        
+        document.getElementById('tab-btn-candidates').classList.remove('border-accent', 'text-gray-900');
+        document.getElementById('tab-btn-candidates').classList.add('border-transparent', 'text-gray-500');
+        
+        document.getElementById('tab-' + tabId).classList.remove('hidden');
+        document.getElementById('tab-btn-' + tabId).classList.remove('border-transparent', 'text-gray-500');
+        document.getElementById('tab-btn-' + tabId).classList.add('border-accent', 'text-gray-900');
+    }
+    
 </script>
 {% endblock %}

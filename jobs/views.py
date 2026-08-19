@@ -123,7 +123,17 @@ def post_job(request):
     else:
         form = JobForm(subscription=subscription)
         
-    return render(request, 'jobs/post_job.html', {'form': form})
+    import json
+    from core.models import ExchangeRate, CurrencySettings
+    rates = {rate.currency: float(rate.rate_to_base) for rate in ExchangeRate.objects.all()}
+    settings = CurrencySettings.objects.first()
+    base_currency = settings.base_currency if settings else "USD"
+        
+    return render(request, 'jobs/post_job.html', {
+        'form': form,
+        'exchange_rates': json.dumps(rates),
+        'base_currency': base_currency
+    })
 
 from django.shortcuts import get_object_or_404
 
@@ -151,7 +161,19 @@ def edit_job(request, job_id):
             initial_data['education'] = [e.strip() for e in job.education.split(',')] if ',' in job.education else [job.education]
         form = JobForm(instance=job, subscription=subscription, initial=initial_data)
 
-    return render(request, 'jobs/post_job.html', {'form': form, 'job': job, 'is_edit': True})
+    import json
+    from core.models import ExchangeRate, CurrencySettings
+    rates = {rate.currency: float(rate.rate_to_base) for rate in ExchangeRate.objects.all()}
+    settings = CurrencySettings.objects.first()
+    base_currency = settings.base_currency if settings else "USD"
+
+    return render(request, 'jobs/post_job.html', {
+        'form': form, 
+        'job': job, 
+        'is_edit': True,
+        'exchange_rates': json.dumps(rates),
+        'base_currency': base_currency
+    })
 
 def job_list(request):
     query = request.GET.get('q', '')

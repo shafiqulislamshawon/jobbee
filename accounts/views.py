@@ -544,27 +544,55 @@ import json
 @login_required
 def wallet_topup(request):
     if request.method == 'POST':
+        payment_method = request.POST.get('payment_method', 'bkash')
         amount = request.POST.get('amount')
-        bkash_number = request.POST.get('bkash_number')
-        transaction_id = request.POST.get('transaction_id')
         
-        if amount and bkash_number and transaction_id:
-            from .models import BKashTopUpRequest
-            if BKashTopUpRequest.objects.filter(transaction_id=transaction_id).exists():
-                messages.error(request, "This transaction ID has already been submitted.")
-            else:
-                BKashTopUpRequest.objects.create(
-                    user=request.user,
-                    amount=amount,
-                    bkash_number=bkash_number,
-                    transaction_id=transaction_id,
-                    status='PENDING'
-                )
-                messages.success(request, "Your top-up request has been submitted and is pending admin approval.")
-                return redirect('wallet_topup')
-        else:
-            messages.error(request, "Please fill in all fields.")
+        if payment_method == 'bkash':
+            bkash_number = request.POST.get('bkash_number')
+            transaction_id = request.POST.get('transaction_id')
             
+            if amount and bkash_number and transaction_id:
+                from .models import BKashTopUpRequest
+                if BKashTopUpRequest.objects.filter(transaction_id=transaction_id).exists():
+                    messages.error(request, "This transaction ID has already been submitted.")
+                else:
+                    BKashTopUpRequest.objects.create(
+                        user=request.user,
+                        amount=amount,
+                        bkash_number=bkash_number,
+                        transaction_id=transaction_id,
+                        status='PENDING'
+                    )
+                    messages.success(request, "Your bKash top-up request has been submitted and is pending admin approval.")
+                    return redirect('wallet_topup')
+            else:
+                messages.error(request, "Please fill in all bKash fields.")
+                
+        elif payment_method == 'bank_transfer':
+            bank_name = request.POST.get('bank_name')
+            account_number = request.POST.get('account_number')
+            transaction_id = request.POST.get('bank_transaction_id')
+            receipt = request.FILES.get('receipt')
+            
+            if amount and bank_name and account_number and transaction_id and receipt:
+                from .models import BankTransferTopUpRequest
+                if BankTransferTopUpRequest.objects.filter(transaction_id=transaction_id).exists():
+                    messages.error(request, "This transaction ID has already been submitted.")
+                else:
+                    BankTransferTopUpRequest.objects.create(
+                        user=request.user,
+                        amount=amount,
+                        bank_name=bank_name,
+                        account_number=account_number,
+                        transaction_id=transaction_id,
+                        receipt=receipt,
+                        status='PENDING'
+                    )
+                    messages.success(request, "Your Bank Transfer top-up request has been submitted and is pending admin approval.")
+                    return redirect('wallet_topup')
+            else:
+                messages.error(request, "Please fill in all Bank Transfer fields and upload a receipt.")
+                
     return render(request, 'accounts/wallet_topup.html')
 
 @login_required

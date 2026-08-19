@@ -1,5 +1,16 @@
 from django.db import models
 
+class ExchangeRate(models.Model):
+    currency = models.CharField(max_length=3, unique=True, help_text="e.g. USD, EUR, GBP")
+    rate_to_base = models.DecimalField(max_digits=10, decimal_places=4, help_text="How much of this currency equals 1 Base Currency")
+    
+    class Meta:
+        verbose_name = "Exchange Rate"
+        verbose_name_plural = "Exchange Rates"
+
+    def __str__(self):
+        return f"{self.currency} (Rate: {self.rate_to_base})"
+
 class CurrencySettings(models.Model):
     base_currency = models.CharField(max_length=10, default="USD", help_text="e.g. USD")
     base_currency_symbol = models.CharField(max_length=5, default="$", help_text="e.g. $")
@@ -90,3 +101,10 @@ class Testimonial(models.Model):
 
     def __str__(self):
         return f"{self.author_name} - {self.author_title}"
+
+class NewsletterSubscriber(models.Model):
+    email = models.EmailField(unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email
