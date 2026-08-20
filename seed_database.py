@@ -109,7 +109,7 @@ scripts = [
 for script in scripts:
     if os.path.exists(script):
         print(f"Executing {script}...")
-        subprocess.run(['python', script])
+        subprocess.run(['python3', script])
     else:
         print(f"Warning: {script} not found, skipping.")
 
