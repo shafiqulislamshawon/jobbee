@@ -5,6 +5,10 @@ from simple_history.models import HistoricalRecords
 class Plan(models.Model):
     name = models.CharField(max_length=50, unique=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(
+        max_length=3, default='USD',
+        help_text="Currency code for the price (USD, BDT, etc.)"
+    )
     job_limit = models.IntegerField(help_text="Number of jobs allowed (-1 for unlimited)", default=1)
     duration_days = models.PositiveIntegerField(default=30)
     has_banner = models.BooleanField(default=False)

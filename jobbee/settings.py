@@ -101,29 +101,29 @@ WSGI_APPLICATION = 'jobbee.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    },
-    "OPTIONS": {
-        "timeout": 50,
-    }
-}
-
 # DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.postgresql",
-#         "NAME": os.environ.get('DATABASE_NAME', "jobeev10"),
-#         "USER": os.environ.get('DATABASE_USER', "postgres"),
-#         "PASSWORD": os.environ.get('DATABASE_PASSWORD', "106219"),
-#         "HOST": os.environ.get('DATABASE_HOST', "localhost"),
-#         "PORT": os.environ.get('DATABASE_PORT', "5432"),
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     },
 #     "OPTIONS": {
 #         "timeout": 50,
 #     }
 # }
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get('DATABASE_NAME', ""),
+        "USER": os.environ.get('DATABASE_USER', ""),
+        "PASSWORD": os.environ.get('DATABASE_PASSWORD', ""),
+        "HOST": os.environ.get('DATABASE_HOST', ""),
+        "PORT": os.environ.get('DATABASE_PORT', ""),
+    },
+    "OPTIONS": {
+        "timeout": 50,
+    }
+}
 
 
 # Password validation

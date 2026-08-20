@@ -273,7 +273,9 @@ def about_us(request):
     return render(request, 'core/about.html')
 
 def services(request):
-    return render(request, 'core/services.html')
+    from .models import Service
+    services_list = Service.objects.all()
+    return render(request, 'core/services.html', {'services': services_list})
 
 def contact_us(request):
     return render(request, 'core/contact.html')

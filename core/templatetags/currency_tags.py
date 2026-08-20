@@ -1,4 +1,5 @@
 from django import template
+from django.utils.formats import localize
 from core.models import CurrencySettings, ExchangeRate
 from jobs.models import Job
 
@@ -14,10 +15,10 @@ def format_currency(context, value):
     except (ValueError, TypeError):
         return value
         
-    user_currency = context.get('user_currency', 'USD')
+    user_currency = context.get('user_currency', 'BDT')
     available_currencies = context.get('available_currencies', None)
     
-    # Base USD symbol is $
+    # Base BDT symbol is ৳
     # If we need symbols for user_currency, we can use the Job.CURRENCY_CHOICES dictionary mapping we made.
     symbols = {
         'USD': '$',
@@ -29,24 +30,34 @@ def format_currency(context, value):
         'BDT': '৳'
     }
     
-    target_symbol = symbols.get(user_currency, '$')
+    target_symbol = symbols.get(user_currency, '৳')
     
-    # If user currency is USD (base), just return
-    if user_currency == 'USD':
+    # If user currency is BDT (base), just return
+    if user_currency == 'BDT':
         return f"{target_symbol} {amount:,.0f}"
         
-    # Get conversion rate
-    rate = 1.0
+    # Get target currency rate
+    target_rate = 1.0
+    
     if available_currencies:
         for ex in available_currencies:
             if ex.currency == user_currency:
-                rate = float(ex.rate_to_base)
+                target_rate = float(ex.rate_to_base)
                 break
     else:
         # Fallback to direct DB query if context processor didn't provide it (e.g. in emails)
-        ex = ExchangeRate.objects.filter(currency=user_currency).first()
-        if ex:
-            rate = float(ex.rate_to_base)
+        ex_target = ExchangeRate.objects.filter(currency=user_currency).first()
+        if ex_target:
+            target_rate = float(ex_target.rate_to_base)
             
-    converted_amount = amount * rate
+    if target_rate > 0:
+        converted_amount = amount / target_rate
+    else:
+        converted_amount = amount
+        
     return f"{target_symbol} {converted_amount:,.0f}"
+
+@register.filter
+def currency(value):
+    context = template.Context({})
+    return format_currency(context, value)

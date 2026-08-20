@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import HeroSectionSettings, CurrencySettings
+from .models import HeroSectionSettings, CurrencySettings, Service
 
 @admin.register(HeroSectionSettings)
 class HeroSectionSettingsAdmin(admin.ModelAdmin):
@@ -10,3 +10,8 @@ class HeroSectionSettingsAdmin(admin.ModelAdmin):
 class CurrencySettingsAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         return not CurrencySettings.objects.exists()
+
+@admin.register(Service)
+class ServiceAdmin(admin.ModelAdmin):
+    list_display = ('title', 'order')
+    list_editable = ('order',)

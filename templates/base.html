@@ -98,85 +98,38 @@
         .delay-200 { transition-delay: 200ms; }
         .delay-300 { transition-delay: 300ms; }
 
-        /* ── Fluid Container ─────────────────────────────────────────
-           Modern generous horizontal gutters — consistent across
-           nav, footer, and all page content. Same padding as
-           Stripe, Vercel, Linear and other premium products.
-        ──────────────────────────────────────────────────────────── */
-        .fluid-container {
+/* ── Container ─────────────────────────────────────────
+       Centered container with responsive max-width and
+       consistent gutters across nav, footer, and content.
+   ──────────────────────────────────────────────────────────── */
+        .container {
             width: 100%;
-            padding-left: 1.25rem;     /* mobile:  20px */
-            padding-right: 1.25rem;
-        }
-        @media (min-width: 640px) {
-            .fluid-container {
-                padding-left: 2.5rem;  /* sm:      40px */
-                padding-right: 2.5rem;
-            }
-        }
-        @media (min-width: 1024px) {
-            .fluid-container {
-                padding-left: 6rem;    /* lg:      96px */
-                padding-right: 6rem;
-            }
-        }
-        @media (min-width: 1280px) {
-            .fluid-container {
-                padding-left: 8rem;    /* xl:     128px */
-                padding-right: 8rem;
-            }
-        }
-        @media (min-width: 1536px) {
-            .fluid-container {
-                padding-left: 10rem;   /* 2xl:    160px */
-                padding-right: 10rem;
-            }
-        }
-
-        /* ── Override: make all max-w-* containers fluid ──────────────
-           Forces max-w-7xl/6xl/5xl/4xl mx-auto to use the same
-           generous gutters instead of their narrow centered box.
-        ──────────────────────────────────────────────────────────── */
-        .max-w-7xl.mx-auto,
-        .max-w-6xl.mx-auto,
-        .max-w-5xl.mx-auto,
-        .max-w-4xl.mx-auto {
-            max-width: 100% !important;
+            max-width: 1536px;
+            margin-left: auto;
+            margin-right: auto;
             padding-left: 1.25rem;
             padding-right: 1.25rem;
         }
         @media (min-width: 640px) {
-            .max-w-7xl.mx-auto,
-            .max-w-6xl.mx-auto,
-            .max-w-5xl.mx-auto,
-            .max-w-4xl.mx-auto {
+            .container {
                 padding-left: 2.5rem;
                 padding-right: 2.5rem;
             }
         }
         @media (min-width: 1024px) {
-            .max-w-7xl.mx-auto,
-            .max-w-6xl.mx-auto,
-            .max-w-5xl.mx-auto,
-            .max-w-4xl.mx-auto {
+            .container {
                 padding-left: 6rem;
                 padding-right: 6rem;
             }
         }
         @media (min-width: 1280px) {
-            .max-w-7xl.mx-auto,
-            .max-w-6xl.mx-auto,
-            .max-w-5xl.mx-auto,
-            .max-w-4xl.mx-auto {
+            .container {
                 padding-left: 8rem;
                 padding-right: 8rem;
             }
         }
         @media (min-width: 1536px) {
-            .max-w-7xl.mx-auto,
-            .max-w-6xl.mx-auto,
-            .max-w-5xl.mx-auto,
-            .max-w-4xl.mx-auto {
+            .container {
                 padding-left: 10rem;
                 padding-right: 10rem;
             }
@@ -219,7 +172,7 @@
 
     <!-- Navigation -->
     <nav class="bg-secondary border-b border-gray-200 sticky top-0 z-50">
-        <div class="fluid-container">
+        <div class="container">
             <div class="flex justify-between h-16">
                 <div class="flex">
                     <div class="flex-shrink-0 flex items-center">
@@ -239,7 +192,7 @@
                         <form action="{% url 'set_currency' %}" method="post" class="ml-2 relative flex items-center bg-gray-50 rounded-lg px-2">
                             {% csrf_token %}
                             <select name="currency" onchange="this.form.submit()" class="text-sm font-bold text-gray-700 hover:text-gray-900 bg-transparent border-none py-1.5 pl-2 pr-6 focus:ring-0 cursor-pointer appearance-none outline-none transition-colors uppercase">
-                                <option value="USD" {% if user_currency == 'USD' %}selected{% endif %}>USD</option>
+                                <option value="BDT" {% if user_currency == 'BDT' %}selected{% endif %}>BDT</option>
                                 {% for curr in available_currencies %}
                                     <option value="{{ curr.currency }}" {% if curr.currency == user_currency %}selected{% endif %}>
                                         {{ curr.currency }}
@@ -360,7 +313,7 @@
     <!-- Main Content -->
     <main class="flex-grow w-full">
         {% if messages %}
-            <div class="fluid-container mt-6">
+            <div class="container mt-6">
                 {% for message in messages %}
                     <div class="p-4 mb-4 rounded-lg text-sm shadow-sm border {% if message.tags == 'error' %}bg-red-50 text-red-800 border-red-200{% elif message.tags == 'success' %}bg-green-50 text-green-800 border-green-200{% else %}bg-gray-50 text-gray-800 border-gray-200{% endif %}">
                         {{ message }}
@@ -375,7 +328,7 @@
     <!-- Global CTA -->
     {% block global_cta %}
     <div class="reveal-on-scroll w-full mt-16">
-        <div class="fluid-container pb-16">
+        <div class="container pb-16">
             <div class="w-full bg-gray-900 rounded-2xl overflow-hidden relative shadow-2xl shadow-gray-900/20">
                 <!-- Mustard accent bar -->
                 <div class="absolute top-0 left-0 right-0 h-1 bg-accent"></div>
@@ -411,7 +364,7 @@
 
     <!-- Footer -->
     <footer class="bg-white border-t border-gray-100 pt-16 pb-12 mt-auto">
-        <div class="fluid-container">
+        <div class="container">
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 mb-12">
                 

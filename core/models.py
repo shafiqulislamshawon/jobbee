@@ -2,7 +2,7 @@ from django.db import models
 
 class ExchangeRate(models.Model):
     currency = models.CharField(max_length=3, unique=True, help_text="e.g. USD, EUR, GBP")
-    rate_to_base = models.DecimalField(max_digits=10, decimal_places=4, help_text="How much of this currency equals 1 Base Currency")
+    rate_to_base = models.DecimalField(max_digits=10, decimal_places=4, help_text="How many BDT equals 1 unit of this currency? (e.g. for USD: enter 120 if 1 USD = 120 BDT)")
     
     class Meta:
         verbose_name = "Exchange Rate"
@@ -12,11 +12,11 @@ class ExchangeRate(models.Model):
         return f"{self.currency} (Rate: {self.rate_to_base})"
 
 class CurrencySettings(models.Model):
-    base_currency = models.CharField(max_length=10, default="USD", help_text="e.g. USD")
-    base_currency_symbol = models.CharField(max_length=5, default="$", help_text="e.g. $")
+    base_currency = models.CharField(max_length=10, default="BDT", help_text="e.g. BDT")
+    base_currency_symbol = models.CharField(max_length=5, default="৳", help_text="e.g. ৳")
     display_currency = models.CharField(max_length=10, default="BDT", help_text="e.g. BDT")
     display_currency_symbol = models.CharField(max_length=5, default="৳", help_text="e.g. ৳")
-    exchange_rate = models.DecimalField(max_digits=10, decimal_places=4, default=120.0000, help_text="1 Base = X Display")
+    exchange_rate = models.DecimalField(max_digits=10, decimal_places=4, default=1.0000, help_text="1 Base = X Display")
     enable_conversion = models.BooleanField(default=True, help_text="Turn currency conversion on or off globally")
 
     class Meta:
@@ -108,3 +108,17 @@ class NewsletterSubscriber(models.Model):
 
     def __str__(self):
         return self.email
+
+class Service(models.Model):
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+    icon_svg = models.TextField(help_text="Paste SVG code for the icon here", blank=True, null=True)
+    order = models.IntegerField(default=0, help_text="Order in which it appears")
+
+    class Meta:
+        verbose_name = "Service"
+        verbose_name_plural = "Services"
+        ordering = ['order']
+
+    def __str__(self):
+        return self.title
