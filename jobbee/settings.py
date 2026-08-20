@@ -24,14 +24,34 @@ load_dotenv(BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-z=i!n95=v09v)tq+9qg&9(h2@7+w=g4w&2r4!r6f$a+e#1+9y+')
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure-z=i!n95=v09v)tq+9qg&9(h2@7+w=g4w&2r4!r6f$a+e#1+9y+'
+)
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get(
+        'ALLOWED_HOSTS',
+        'job-bee.com,www.job-bee.com'
+    ).split(',')
+    if host.strip()
+]
 
+# Production HTTPS / CSRF configuration
+CSRF_TRUSTED_ORIGINS = [
+    'https://job-bee.com',
+    'https://www.job-bee.com',
+]
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+SECURE_SSL_REDIRECT = True
 # Application definition
 
 INSTALLED_APPS = [
