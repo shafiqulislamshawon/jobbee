@@ -20,7 +20,7 @@ class JobForm(forms.ModelForm):
             'title', 'category', 'description', 'responsibilities', 'requirements', 'professional_qualifications',
             'currency', 'salary_min', 'salary_max', 'is_salary_negotiable', 'show_salary', 'employment_type', 'remote_status', 
             'location', 'sub_location', 'anywhere_in_bd', 'benefits', 'skills', 'experience', 'education', 'deadline',
-            'is_featured'
+            'is_featured', 'external_apply_url'
         ]
         labels = {
             'description': 'Job Context',
@@ -38,6 +38,7 @@ class JobForm(forms.ModelForm):
             'professional_qualifications': forms.Textarea(attrs={'class': 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm', 'rows': 3}),
             'sub_location': forms.TextInput(attrs={'class': 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm'}),
             'currency': forms.Select(attrs={'class': 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm'}),
+            'external_apply_url': forms.URLInput(attrs={'class': 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm', 'placeholder': 'https://example.com/apply'}),
         }
 
     def __init__(self, *args, **kwargs):

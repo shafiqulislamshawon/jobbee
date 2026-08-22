@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import HeroSectionSettings, CurrencySettings, Service
+from .models import HeroSectionSettings, CurrencySettings, Service, TrustedCompany
 
 @admin.register(HeroSectionSettings)
 class HeroSectionSettingsAdmin(admin.ModelAdmin):
@@ -14,4 +14,9 @@ class CurrencySettingsAdmin(admin.ModelAdmin):
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
     list_display = ('title', 'order')
+    list_editable = ('order',)
+
+@admin.register(TrustedCompany)
+class TrustedCompanyAdmin(admin.ModelAdmin):
+    list_display = ('name', 'order')
     list_editable = ('order',)

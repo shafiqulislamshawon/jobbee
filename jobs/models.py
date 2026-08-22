@@ -65,6 +65,7 @@ class Job(models.Model):
     experience = models.CharField(max_length=100, blank=True)
     education = models.CharField(max_length=255, blank=True)
     professional_qualifications = models.TextField(blank=True)
+    external_apply_url = models.URLField(blank=True, null=True, help_text="If provided, applicants will be redirected to this URL when clicking Apply")
     
     deadline = models.DateField(blank=True, null=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)

@@ -165,37 +165,43 @@
         </div>
         
         <div class="border-t border-gray-100 pt-6 mt-2">
-            {% if request.user.is_authenticated and request.user.is_seeker %}
-                {% if has_applied %}
-                    <button disabled class="bg-gray-300 text-gray-700 font-medium px-8 py-3 rounded-lg cursor-not-allowed">
-                        Already Applied
-                    </button>
-                {% else %}
-                    {% with completion=request.user.seeker_profile.get_completion_percentage %}
-                        {% if completion < 70 %}
-                        <div class="inline-flex flex-col gap-2">
-                            <button disabled class="bg-gray-300 text-gray-700 font-medium px-8 py-3 rounded-lg cursor-not-allowed text-center">
-                                Apply Now (Profile Incomplete)
-                            </button>
-                            <span class="text-xs text-red-500 font-medium">Your profile is {{ completion }}% complete. <a href="{% url 'dashboard' %}" class="underline hover:text-red-700">Update Profile to 70%</a></span>
-                        </div>
-                        {% else %}
-                        <a href="{% url 'apply_job' job.id %}" class="inline-block bg-accent text-white font-medium px-8 py-3 rounded-lg hover:opacity-90 transition shadow-sm text-center">
-                            Apply Now
-                        </a>
-                        {% endif %}
-                    {% endwith %}
-                {% endif %}
-            {% elif request.user.is_employer %}
-                {% if request.user == job.employer %}
+            {% if request.user.is_employer and request.user == job.employer %}
                 <a href="{% url 'edit_job' job.id %}" class="inline-block bg-accent text-white font-medium px-8 py-3 rounded-lg hover:opacity-90 transition shadow-sm text-center">
                     Edit Job
                 </a>
-                {% endif %}
-            {% else %}
-                <a href="{% url 'login' %}?next={{ request.path }}" class="inline-block bg-primary text-white font-medium px-8 py-3 rounded-lg hover:bg-gray-800 transition shadow-sm">
-                    Sign in to Apply
+            {% elif job.external_apply_url %}
+                <a href="{{ job.external_apply_url }}" target="_blank" rel="noopener noreferrer" class="inline-block bg-accent text-white font-medium px-8 py-3 rounded-lg hover:opacity-90 transition shadow-sm text-center">
+                    Apply Now (External)
                 </a>
+            {% else %}
+                {% if request.user.is_authenticated and request.user.is_seeker %}
+                    {% if has_applied %}
+                        <button disabled class="bg-gray-300 text-gray-700 font-medium px-8 py-3 rounded-lg cursor-not-allowed">
+                            Already Applied
+                        </button>
+                    {% else %}
+                        {% with completion=request.user.seeker_profile.get_completion_percentage %}
+                            {% if completion < 70 %}
+                            <div class="inline-flex flex-col gap-2">
+                                <button disabled class="bg-gray-300 text-gray-700 font-medium px-8 py-3 rounded-lg cursor-not-allowed text-center">
+                                    Apply Now (Profile Incomplete)
+                                </button>
+                                <span class="text-xs text-red-500 font-medium">Your profile is {{ completion }}% complete. <a href="{% url 'dashboard' %}" class="underline hover:text-red-700">Update Profile to 70%</a></span>
+                            </div>
+                            {% else %}
+                            <a href="{% url 'apply_job' job.id %}" class="inline-block bg-accent text-white font-medium px-8 py-3 rounded-lg hover:opacity-90 transition shadow-sm text-center">
+                                Apply Now
+                            </a>
+                            {% endif %}
+                        {% endwith %}
+                    {% endif %}
+                {% elif request.user.is_employer %}
+                    <!-- Employer looking at someone else's job, or similar -->
+                {% else %}
+                    <a href="{% url 'login' %}?next={{ request.path }}" class="inline-block bg-primary text-white font-medium px-8 py-3 rounded-lg hover:bg-gray-800 transition shadow-sm">
+                        Sign in to Apply
+                    </a>
+                {% endif %}
             {% endif %}
         </div>
     </div>
