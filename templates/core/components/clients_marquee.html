@@ -12,7 +12,7 @@
             {% if trusted_companies %}
                 {% for company in trusted_companies %}
                     {% if company.logo %}
-                    <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="h-8 object-contain filter grayscale hover:grayscale-0 transition duration-300 inline-block flex-shrink-0 max-w-[150px]">
+                    <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="h-12 md:h-16 object-contain transition duration-300 inline-block flex-shrink-0 max-w-[200px]">
                     {% else %}
                     <span class="text-xl font-bold text-gray-800 inline-block flex-shrink-0">{{ company.name }}</span>
                     {% endif %}
@@ -27,7 +27,7 @@
             {% if trusted_companies %}
                 {% for company in trusted_companies %}
                     {% if company.logo %}
-                    <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="h-8 object-contain filter grayscale hover:grayscale-0 transition duration-300 inline-block flex-shrink-0 max-w-[150px]">
+                    <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="h-12 md:h-16 object-contain transition duration-300 inline-block flex-shrink-0 max-w-[200px]">
                     {% else %}
                     <span class="text-xl font-bold text-gray-800 inline-block flex-shrink-0">{{ company.name }}</span>
                     {% endif %}
