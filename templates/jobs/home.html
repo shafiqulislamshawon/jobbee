@@ -203,30 +203,7 @@
 </div>
 
 <!-- COMPANIES SECTION -->
-<div class="border-y border-gray-100 bg-white py-10 text-center">
-    <p class="text-sm font-semibold text-gray-500 mb-6">{{ hero_settings.companies_section_title|default:"Trusted by innovative companies" }}</p>
-    <div class="max-w-6xl mx-auto px-4 flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-80">
-        {% if trusted_companies %}
-            {% for company in trusted_companies %}
-                {% if company.logo %}
-                <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="h-8 object-contain filter grayscale hover:grayscale-0 transition duration-300">
-                {% else %}
-                <span class="text-xl font-bold text-gray-800">{{ company.name }}</span>
-                {% endif %}
-            {% endfor %}
-        {% else %}
-            <!-- Colored text logos simulating brands (fallback) -->
-            <span class="text-xl font-bold text-[#FF5A5F]">airbnb</span>
-            <span class="text-xl font-bold text-[#0668E1]">Meta</span>
-            <span class="text-xl font-bold text-[#FF9900]">amazon</span>
-            <span class="text-xl font-bold text-[#E50914] uppercase tracking-tighter">NETFLIX</span>
-            <span class="text-xl font-bold text-[#4285F4]">Google</span>
-            <span class="text-xl font-bold text-[#635BFF]">stripe</span>
-            <span class="text-xl font-bold text-[#1DB954]">Spotify</span>
-            <span class="text-xl font-bold text-[#00A4EF]">Microsoft</span>
-        {% endif %}
-    </div>
-</div>
+{% include 'core/components/clients_marquee.html' %}
 
 <!-- STATS GRID -->
 <div class="bg-gray-50 py-12">

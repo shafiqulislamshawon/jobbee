@@ -1,0 +1,65 @@
+<!-- DYNAMIC CLIENTS MARQUEE SECTION -->
+<div class="border-y border-gray-100 bg-white py-10 text-center overflow-hidden w-full relative group">
+    <p class="text-sm font-semibold text-gray-500 mb-6">{{ hero_settings.companies_section_title|default:"Trusted by innovative companies" }}</p>
+    
+    <!-- Gradient edges -->
+    <div class="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+    <div class="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+
+    <div class="relative flex overflow-hidden">
+        <!-- First Marquee Track -->
+        <div class="animate-marquee flex whitespace-nowrap min-w-full shrink-0 items-center justify-around gap-16 pr-16 group-hover:[animation-play-state:paused]">
+            {% if trusted_companies %}
+                {% for company in trusted_companies %}
+                    {% if company.logo %}
+                    <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="h-8 object-contain filter grayscale hover:grayscale-0 transition duration-300 inline-block flex-shrink-0 max-w-[150px]">
+                    {% else %}
+                    <span class="text-xl font-bold text-gray-800 inline-block flex-shrink-0">{{ company.name }}</span>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <span class="text-xl font-bold text-[#FF5A5F] inline-block flex-shrink-0">airbnb</span>
+                <span class="text-xl font-bold text-[#0668E1] inline-block flex-shrink-0">Meta</span>
+                <span class="text-xl font-bold text-[#FF9900] inline-block flex-shrink-0">amazon</span>
+                <span class="text-xl font-bold text-[#E50914] uppercase tracking-tighter inline-block flex-shrink-0">NETFLIX</span>
+                <span class="text-xl font-bold text-[#4285F4] inline-block flex-shrink-0">Google</span>
+                <span class="text-xl font-bold text-[#635BFF] inline-block flex-shrink-0">stripe</span>
+                <span class="text-xl font-bold text-[#1DB954] inline-block flex-shrink-0">Spotify</span>
+                <span class="text-xl font-bold text-[#00A4EF] inline-block flex-shrink-0">Microsoft</span>
+            {% endif %}
+        </div>
+        
+        <!-- Second Marquee Track (Duplicate) -->
+        <div aria-hidden="true" class="animate-marquee flex whitespace-nowrap min-w-full shrink-0 items-center justify-around gap-16 pr-16 group-hover:[animation-play-state:paused]">
+            {% if trusted_companies %}
+                {% for company in trusted_companies %}
+                    {% if company.logo %}
+                    <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="h-8 object-contain filter grayscale hover:grayscale-0 transition duration-300 inline-block flex-shrink-0 max-w-[150px]">
+                    {% else %}
+                    <span class="text-xl font-bold text-gray-800 inline-block flex-shrink-0">{{ company.name }}</span>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <span class="text-xl font-bold text-[#FF5A5F] inline-block flex-shrink-0">airbnb</span>
+                <span class="text-xl font-bold text-[#0668E1] inline-block flex-shrink-0">Meta</span>
+                <span class="text-xl font-bold text-[#FF9900] inline-block flex-shrink-0">amazon</span>
+                <span class="text-xl font-bold text-[#E50914] uppercase tracking-tighter inline-block flex-shrink-0">NETFLIX</span>
+                <span class="text-xl font-bold text-[#4285F4] inline-block flex-shrink-0">Google</span>
+                <span class="text-xl font-bold text-[#635BFF] inline-block flex-shrink-0">stripe</span>
+                <span class="text-xl font-bold text-[#1DB954] inline-block flex-shrink-0">Spotify</span>
+                <span class="text-xl font-bold text-[#00A4EF] inline-block flex-shrink-0">Microsoft</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes marquee {
+        0% { transform: translateX(0%); }
+        100% { transform: translateX(-100%); }
+    }
+    
+    .animate-marquee {
+        animation: marquee 25s linear infinite;
+    }
+</style>
