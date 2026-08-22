@@ -23,17 +23,25 @@ class TimezoneMiddleware:
 
 class RemoteAddrMiddleware:
     """
-    Middleware to ensure REMOTE_ADDR is present in request.META
-    to prevent KeyError in packages like django-ratelimit.
+    Ensure REMOTE_ADDR is available for Django packages
+    that expect it.
     """
+
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        if 'REMOTE_ADDR' not in request.META:
+        if not request.META.get('REMOTE_ADDR'):
+            x_real_ip = request.META.get('HTTP_X_REAL_IP')
             x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-            if x_forwarded_for:
-                request.META['REMOTE_ADDR'] = x_forwarded_for.split(',')[0].strip()
+
+            if x_real_ip:
+                request.META['REMOTE_ADDR'] = x_real_ip
+            elif x_forwarded_for:
+                request.META['REMOTE_ADDR'] = (
+                    x_forwarded_for.split(',')[0].strip()
+                )
             else:
                 request.META['REMOTE_ADDR'] = '127.0.0.1'
+
         return self.get_response(request)
